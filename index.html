@@ -1,0 +1,5638 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>体验馆展项管控系统</title>
+
+<style>
+
+/* ============ Reset & Base ============ */
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+
+  --primary:#2563eb;--primary-dark:#1d4ed8;--primary-light:#dbeafe;
+
+  --gray-50:#f9fafb;--gray-100:#f3f4f6;--gray-200:#e5e7eb;--gray-300:#d1d5db;
+
+  --gray-400:#9ca3af;--gray-500:#6b7280;--gray-600:#4b5563;--gray-700:#374151;--gray-800:#1f2937;--gray-900:#111827;
+
+  --green:#16a34a;--green-light:#dcfce7;--yellow:#ca8a04;--yellow-light:#fef9c3;--red:#dc2626;--red-light:#fee2e2;--blue:#2563eb;--blue-light:#dbeafe;
+
+  --radius:10px;--shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);--shadow-lg:0 10px 30px rgba(0,0,0,.12);
+
+}
+
+html{font-size:14px}
+
+body{font-family:'Microsoft YaHei','PingFang SC','Helvetica Neue',Arial,sans-serif;background:var(--gray-100);color:var(--gray-800);line-height:1.5;-webkit-font-smoothing:antialiased}
+
+button{font-family:inherit;cursor:pointer;border:none;outline:none;font-size:14px}
+
+input,select,textarea{font-family:inherit;font-size:14px;outline:none;border:none}
+
+a{color:var(--primary);text-decoration:none}
+
+/* ============ Layout ============ */
+
+.app{display:flex;min-height:100vh}
+
+.sidebar{width:220px;background:var(--gray-900);color:var(--gray-300);display:flex;flex-direction:column;flex-shrink:0;position:fixed;height:100vh;z-index:100}
+
+.sidebar-brand{padding:20px 24px;font-size:18px;font-weight:700;color:#fff;border-bottom:1px solid rgba(255,255,255,.08);white-space:nowrap}
+
+.sidebar-nav{flex:1;padding:12px 0;overflow-y:auto}
+
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 24px;color:var(--gray-400);cursor:pointer;transition:all .15s;font-size:14px;white-space:nowrap}
+
+.nav-item:hover{color:#fff;background:rgba(255,255,255,.06)}
+
+.nav-item.active{color:#fff;background:var(--primary)}
+
+.nav-item svg{flex-shrink:0}
+
+.sidebar-footer{padding:12px 24px;font-size:12px;color:var(--gray-500);border-top:1px solid rgba(255,255,255,.08)}
+
+.main{flex:1;margin-left:220px;display:flex;flex-direction:column;min-height:100vh}
+
+/* ============ Topbar ============ */
+
+.topbar{background:#fff;padding:16px 28px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 1px 2px rgba(0,0,0,.04);position:sticky;top:0;z-index:50}
+
+.topbar h1{font-size:20px;font-weight:700;color:var(--gray-800)}
+
+.topbar-actions{display:flex;gap:8px;align-items:center}
+
+/* ============ Buttons ============ */
+
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;font-weight:500;transition:all .15s;white-space:nowrap}
+
+.btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:var(--primary-dark)}
+
+.btn-secondary{background:var(--gray-100);color:var(--gray-700)}.btn-secondary:hover{background:var(--gray-200)}
+
+.btn-danger{background:var(--red);color:#fff}.btn-danger:hover{opacity:.9}
+
+.btn-sm{padding:5px 10px;font-size:12px;border-radius:6px}
+
+.btn-ghost{background:transparent;color:var(--gray-600);padding:5px 8px;border-radius:6px}.btn-ghost:hover{background:var(--gray-100)}
+
+.btn svg{display:block}
+
+/* ============ Content ============ */
+
+.content{padding:24px 28px;flex:1}
+
+/* Stats Cards */
+
+.stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:20px}
+
+.stat-card{background:#fff;border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow);cursor:pointer;transition:transform .15s,box-shadow .15s;border:2px solid transparent}
+
+.stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+
+.stat-card.active{border-color:var(--primary)}
+
+.stat-label{font-size:12px;color:var(--gray-500);margin-bottom:6px;font-weight:500}
+
+.stat-value{font-size:28px;font-weight:800;color:var(--gray-800)}
+
+.stat-card.warning .stat-value{color:var(--yellow)}
+
+.stat-card.danger .stat-value{color:var(--red)}
+
+/* Filter Bar */
+
+.filter-bar{background:#fff;border-radius:var(--radius);padding:16px 20px;box-shadow:var(--shadow);margin-bottom:18px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+
+.filter-group{display:flex;align-items:center;gap:6px}
+
+.filter-label{font-size:13px;color:var(--gray-500);white-space:nowrap}
+
+.filter-select,.filter-input{padding:7px 12px;border:1px solid var(--gray-300);border-radius:8px;background:#fff;color:var(--gray-700);transition:border-color .15s}
+
+.filter-select:focus,.filter-input:focus{border-color:var(--primary)}
+
+.filter-input{width:240px}
+
+.filter-spacer{flex:1}
+
+.tag-active{background:var(--primary-light);color:var(--primary-dark);font-size:12px;padding:2px 8px;border-radius:4px;margin-left:4px}
+
+/* View Toggle */
+
+.view-toggle{display:flex;border:1px solid var(--gray-300);border-radius:8px;overflow:hidden}
+
+.view-toggle button{padding:7px 12px;background:#fff;color:var(--gray-500);transition:all .15s}
+
+.view-toggle button.active{background:var(--primary);color:#fff}
+
+/* ============ Card View ============ */
+
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+
+.exhibit-card{background:#fff;border-radius:var(--radius);padding:0;box-shadow:var(--shadow);transition:box-shadow .15s,transform .15s;overflow:hidden;border-top:3px solid var(--gray-300)}
+
+.exhibit-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-2px)}
+
+.exhibit-card.status-online{border-top-color:var(--green)}
+
+.exhibit-card.status-pending{border-top-color:var(--yellow)}
+
+.exhibit-card.status-offline{border-top-color:var(--red)}
+
+.exhibit-card.status-removed{border-top-color:var(--gray-400)}
+
+.exhibit-card.status-dev{border-top-color:var(--blue)}
+
+.card-header{padding:14px 18px 10px}
+
+.card-title-row{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px}
+
+.card-title{font-size:15px;font-weight:700;color:var(--gray-800);flex:1}
+
+.card-id{font-size:11px;color:var(--gray-400);font-weight:400;white-space:nowrap}
+
+.card-body{padding:0 18px 14px}
+
+.card-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:13px}
+
+.card-row .label{color:var(--gray-500);white-space:nowrap}
+
+.card-row .value{color:var(--gray-700);font-weight:500;text-align:right;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.card-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+
+.card-footer{padding:10px 18px;background:var(--gray-50);border-top:1px solid var(--gray-200);display:flex;justify-content:space-between;align-items:center}
+.ed-item{font-size:12px;color:var(--gray-600);line-height:1.6;border-bottom:1px dashed var(--gray-200);padding:3px 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ed-more{font-size:12px;color:var(--primary);margin-top:4px}
+
+/* Tags */
+
+.tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;white-space:nowrap}
+
+.tag-green{background:var(--green-light);color:var(--green)}
+
+.tag-yellow{background:var(--yellow-light);color:var(--yellow)}
+
+.tag-red{background:var(--red-light);color:var(--red)}
+
+.tag-gray{background:var(--gray-200);color:var(--gray-600)}
+
+.tag-blue{background:var(--blue-light);color:var(--blue)}
+
+.tag-warn{background:var(--red);color:#fff;animation:pulse 2s ease-in-out infinite}
+
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.7}}
+
+/* ============ Table View ============ */
+
+.table-wrap{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);overflow:auto}
+
+table{width:100%;border-collapse:collapse;font-size:13px}
+
+thead{background:var(--gray-50);position:sticky;top:0}
+
+th{padding:12px 14px;text-align:left;font-weight:600;color:var(--gray-600);border-bottom:2px solid var(--gray-200);white-space:nowrap}
+
+td{padding:10px 14px;border-bottom:1px solid var(--gray-100);color:var(--gray-700)}
+
+tr:hover td{background:var(--gray-50)}
+
+.table-actions{display:flex;gap:4px}
+
+/* ============ Modal ============ */
+
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;display:none;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+
+.modal-overlay.show{display:flex}
+
+.modal{background:#fff;border-radius:14px;width:640px;max-width:90vw;max-height:85vh;display:flex;flex-direction:column;box-shadow:var(--shadow-lg);animation:modalIn .2s ease}
+
+@keyframes modalIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+.modal-header{padding:20px 24px;border-bottom:1px solid var(--gray-200);display:flex;justify-content:space-between;align-items:center}
+
+.modal-title{font-size:18px;font-weight:700;color:var(--gray-800)}
+
+.modal-close{font-size:22px;color:var(--gray-400);background:none;border:none;cursor:pointer;line-height:1;padding:4px}
+
+.modal-close:hover{color:var(--gray-700)}
+
+.modal-body{padding:24px;overflow-y:auto;flex:1}
+
+.modal-footer{padding:16px 24px;border-top:1px solid var(--gray-200);display:flex;justify-content:flex-end;gap:10px}
+
+/* Form */
+
+.form-group{margin-bottom:16px}
+
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+
+.form-row.three{grid-template-columns:1fr 1fr 1fr}
+
+.form-label{font-size:13px;font-weight:600;color:var(--gray-600);margin-bottom:6px;display:block}
+
+.form-label .required{color:var(--red)}
+
+.form-input,.form-select,.form-textarea{width:100%;padding:9px 12px;border:1px solid var(--gray-300);border-radius:8px;background:#fff;color:var(--gray-700);transition:border-color .15s;font-size:14px}
+
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--primary)}
+
+.form-textarea{resize:vertical;min-height:60px}
+
+.form-hint{font-size:12px;color:var(--gray-400);margin-top:4px}
+
+.form-readonly{background:var(--gray-50);color:var(--gray-500)}
+
+/* ============ Empty State ============ */
+
+.empty{padding:60px 20px;text-align:center;color:var(--gray-400)}
+
+.empty svg{margin-bottom:12px;opacity:.5}
+
+.empty p{font-size:14px}
+
+/* ============ Toast ============ */
+
+.toast{position:fixed;bottom:24px;right:24px;background:var(--gray-800);color:#fff;padding:12px 20px;border-radius:8px;font-size:14px;z-index:300;box-shadow:var(--shadow-lg);transform:translateY(100px);opacity:0;transition:all .25s}
+
+.toast.show{transform:translateY(0);opacity:1}
+
+.toast.success{background:var(--green)}
+
+.toast.error{background:var(--red)}
+
+/* ============ Confirm Dialog ============ */
+
+.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:250;display:none;align-items:center;justify-content:center}
+
+.confirm-overlay.show{display:flex}
+
+.confirm-box{background:#fff;border-radius:14px;padding:28px 32px;max-width:400px;box-shadow:var(--shadow-lg);text-align:center}
+
+.confirm-icon{width:48px;height:48px;border-radius:50%;background:var(--red-light);display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
+
+.confirm-title{font-size:17px;font-weight:700;margin-bottom:6px}
+
+.confirm-msg{font-size:14px;color:var(--gray-500);margin-bottom:22px}
+
+.confirm-actions{display:flex;gap:10px;justify-content:center}
+
+/* ============ Scrollbar ============ */
+
+::-webkit-scrollbar{width:8px;height:8px}
+
+::-webkit-scrollbar-track{background:var(--gray-100)}
+
+::-webkit-scrollbar-thumb{background:var(--gray-300);border-radius:4px}
+
+::-webkit-scrollbar-thumb:hover{background:var(--gray-400)}
+
+/* Import hint */
+
+.import-hint{font-size:12px;color:var(--gray-400);margin-top:4px}
+
+.file-hidden{display:none}
+
+/* ============ 移动端适配 ============ */
+
+/* 平板适配 (≤1024px) */
+@media (max-width:1024px){
+  .card-grid{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+  .stats-row{grid-template-columns:repeat(3,1fr)}
+}
+
+/* 手机适配 (≤768px) */
+@media (max-width:768px){
+
+  /* 布局：侧边栏改底部导航 */
+  .app{display:block}
+  .sidebar{
+    position:fixed;left:0;right:0;bottom:0;top:auto;
+    width:100%;height:auto;flex-direction:row;
+    border-top:1px solid rgba(255,255,255,.08);
+    padding:0;z-index:100;
+  }
+  .sidebar-brand{display:none}
+  .sidebar-nav{
+    flex:1;display:flex;flex-direction:row;
+    padding:0;overflow-x:auto;
+  }
+  .nav-item{
+    flex:1;flex-direction:column;align-items:center;justify-content:center;
+    gap:2px;padding:8px 4px;font-size:11px;white-space:nowrap;
+    min-width:60px;
+  }
+  .nav-item svg{width:18px;height:18px}
+  .nav-item span{font-size:10px;line-height:1.2}
+  .nav-item:hover{background:rgba(255,255,255,.06)}
+  .nav-item.active{background:transparent;color:#fff;border-top:2px solid #fff;padding-top:6px}
+  .sidebar-footer{display:none}
+
+  /* 主区域 */
+  .main{margin-left:0;padding-bottom:60px}
+  html{font-size:13px}
+
+  /* 顶栏 */
+  .topbar{padding:12px 14px;flex-wrap:wrap;gap:8px}
+  .topbar h1{font-size:17px}
+  .topbar-actions{gap:6px;flex-wrap:wrap}
+  .topbar-actions .btn{padding:6px 10px;font-size:12px;gap:4px}
+  .topbar-actions .btn svg{width:14px;height:14px}
+
+  /* 内容区 */
+  .content{padding:14px}
+
+  /* 统计卡片 */
+  .stats-row{grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px}
+  .stat-card{padding:12px 14px}
+  .stat-label{font-size:11px}
+  .stat-value{font-size:22px}
+
+  /* 筛选栏 */
+  .filter-bar{flex-direction:column;align-items:stretch;gap:8px;padding:12px}
+  .filter-group{width:100%}
+  .filter-select,.filter-input{width:100%}
+  .filter-label{font-size:12px}
+  .filter-spacer{display:none}
+  .view-toggle{align-self:center}
+
+  /* 卡片网格：单列 */
+  .card-grid{grid-template-columns:1fr;gap:12px}
+  .card-row .value{max-width:160px}
+
+  /* 展项数据卡片预览 */
+  .ed-item{white-space:normal}
+
+  /* 弹窗全屏化 */
+  .modal-overlay{align-items:stretch}
+  .modal{
+    width:100%;max-width:100%;max-height:100vh;
+    border-radius:0;height:100vh;
+  }
+  .modal-header{padding:16px}
+  .modal-title{font-size:16px}
+  .modal-body{padding:16px}
+  .modal-footer{padding:12px 16px;gap:8px}
+  .modal-footer .btn{flex:1;justify-content:center}
+
+  /* 表单单列 */
+  .form-row{grid-template-columns:1fr !important;gap:0}
+  .form-group{margin-bottom:12px}
+  .form-input,.form-select,.form-textarea{font-size:16px}
+
+  /* 表格横向滚动 */
+  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+  /* 确认弹窗 */
+  .confirm-box{max-width:90%;padding:20px}
+
+  /* Toast 居中底部 */
+  .toast{left:50%;right:auto;bottom:70px;transform:translateX(-50%) translateY(100px);max-width:90%;text-align:center}
+  .toast.show{transform:translateX(-50%) translateY(0)}
+
+  /* 详情弹窗内容优化 */
+  #detailBody{font-size:13px}
+  #detailBody div[style*="grid-template-columns"]{grid-template-columns:1fr !important;gap:8px 0 !important}
+
+  /* 数据统计页内联网格强制单列 */
+  #content [style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr !important}
+  #content [style*="grid-template-columns:repeat(4,1fr)"]{grid-template-columns:repeat(2,1fr) !important}
+
+}
+
+/* 小屏手机 (≤480px) */
+@media (max-width:480px){
+  html{font-size:12px}
+  .topbar h1{font-size:16px}
+  .stats-row{grid-template-columns:repeat(2,1fr)}
+  .stat-value{font-size:20px}
+  .nav-item{min-width:50px}
+  .nav-item span{font-size:9px}
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="app">
+
+  <!-- ============ Sidebar ============ -->
+
+  <aside class="sidebar">
+
+    <div class="sidebar-brand">体验馆展项管控</div>
+
+    <nav class="sidebar-nav" id="nav">
+
+      <div class="nav-item active" data-page="dashboard" title="展项总览">
+
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+
+        <span>展项台账</span>
+
+      </div>
+
+      <div class="nav-item" data-page="warning" title="超期预警">
+
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+
+        <span>超期预警</span>
+
+      </div>
+
+      <div class="nav-item" data-page="exhibitData" title="展项数据">
+
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/><path d="M3 20h18"/></svg>
+
+        <span>展项数据</span>
+
+      </div>
+
+      <div class="nav-item" data-page="update" title="更新记录">
+
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
+
+        <span>更新记录</span>
+
+      </div>
+
+      <div class="nav-item" data-page="stats" title="数据统计">
+
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+
+        <span>数据统计</span>
+
+      </div>
+
+    </nav>
+
+    <div class="sidebar-footer">本地数据 · 自动保存</div>
+
+  </aside>
+
+  <!-- ============ Main ============ -->
+
+  <div class="main">
+
+    <!-- Topbar -->
+
+    <header class="topbar">
+
+      <h1 id="pageTitle">展项台账</h1>
+
+      <div class="topbar-actions">
+
+        <input type="file" id="importFile" class="file-hidden" accept=".json">
+
+        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('importFile').click()">
+
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+
+          导入
+
+        </button>
+
+        <button class="btn btn-secondary btn-sm" onclick="exportData()">
+
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+
+          导出
+
+        </button>
+
+        <button class="btn btn-danger btn-sm" onclick="confirmClearAll()">
+
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+
+          清空数据
+
+        </button>
+
+        <button class="btn btn-primary btn-sm" onclick="onAddBtnClick()">
+
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+
+          <span id="addBtnText">新增展项</span>
+
+        </button>
+
+      </div>
+
+    </header>
+
+    <!-- Content -->
+
+    <div class="content" id="content">
+
+      <!-- Dynamic content here -->
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- ============ Modal: Add/Edit ============ -->
+
+<div class="modal-overlay" id="editModal">
+
+  <div class="modal">
+
+    <div class="modal-header">
+
+      <div class="modal-title" id="modalTitle">新增展项</div>
+
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+
+    </div>
+
+    <div class="modal-body">
+
+      <input type="hidden" id="editId">
+
+      <div class="form-row">
+
+        <div class="form-group">
+
+          <label class="form-label">展项编号 <span class="required">*</span></label>
+
+          <input type="text" class="form-input" id="f_id" placeholder="如 ZXD001" onblur="genIdIfEmpty()">
+
+        </div>
+
+        <div class="form-group">
+
+          <label class="form-label">展项名称 <span class="required">*</span></label>
+
+          <input type="text" class="form-input" id="f_name" placeholder="如 AI智能客服体验">
+
+        </div>
+
+      </div>
+
+      <div class="form-row three">
+
+        <div class="form-group">
+
+          <label class="form-label">归属部门类型 <span class="required">*</span></label>
+
+          <select class="form-select" id="f_depttype" onchange="onDeptTypeChange()">
+
+            <option value="能力部门">能力部门</option>
+
+            <option value="行业部门">行业部门</option>
+
+          </select>
+
+        </div>
+
+        <div class="form-group">
+
+          <label class="form-label">归属部门 <span class="required">*</span></label>
+
+          <select class="form-select" id="f_dept"></select>
+
+        </div>
+
+        <div class="form-group">
+
+          <label class="form-label">展项类别</label>
+
+          <select class="form-select" id="f_category">
+
+            <option value="互动体验">互动体验</option>
+
+            <option value="数据大屏">数据大屏</option>
+
+            <option value="视频展示">视频展示</option>
+
+            <option value="实物展示">实物展示</option>
+
+            <option value="PPT">PPT</option>
+
+            <option value="其他">其他</option>
+
+          </select>
+
+        </div>
+
+      </div>
+
+      <div class="form-row three">
+
+        <div class="form-group">
+
+          <label class="form-label">展项状态</label>
+
+          <select class="form-select" id="f_status">
+
+            <option value="在线">在线</option>
+
+            <option value="下线">下线</option>
+
+            <option value="新增">新增</option>
+
+          </select>
+
+        </div>
+
+        <div class="form-group">
+
+          <label class="form-label">上线日期 <span class="required">*</span></label>
+
+          <input type="date" class="form-input" id="f_online_date">
+
+        </div>
+
+        <div class="form-group">
+
+          <label class="form-label">最后更新日期 <span class="required">*</span></label>
+
+          <input type="date" class="form-input" id="f_update_date">
+
+        </div>
+
+      </div>
+
+      <div class="form-row">
+
+        <div class="form-group">
+
+          <label class="form-label">展项位置</label>
+
+          <input type="text" class="form-input" id="f_location" placeholder="如 A区-A01">
+
+        </div>
+
+        <div class="form-group">
+
+          <label class="form-label">负责人</label>
+
+          <input type="text" class="form-input" id="f_owner" placeholder="如 张明">
+
+        </div>
+
+      </div>
+
+      <div class="form-row">
+
+        <div class="form-group">
+
+          <label class="form-label">联系方式</label>
+
+          <input type="text" class="form-input" id="f_contact" placeholder="手机号或邮箱">
+
+        </div>
+
+        <div class="form-group">
+
+          <label class="form-label">技术联系人</label>
+
+          <input type="text" class="form-input" id="f_tech_contact" placeholder="如 李工">
+
+        </div>
+
+      </div>
+
+      <div class="form-group">
+
+        <label class="form-label">内容介绍</label>
+
+        <textarea class="form-textarea" id="f_desc" placeholder="展项展示的内容和功能介绍..."></textarea>
+
+      </div>
+
+      <div class="form-group">
+
+        <label class="form-label">备注</label>
+
+        <textarea class="form-textarea" id="f_remark" placeholder="其他需要记录的信息..."></textarea>
+
+      </div>
+
+    </div>
+
+    <div class="modal-footer">
+
+      <button class="btn btn-secondary" onclick="closeModal()">取消</button>
+
+      <button class="btn btn-primary" onclick="saveExhibit()">保存</button>
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- ============ Modal: Detail ============ -->
+
+<div class="modal-overlay" id="detailModal">
+
+  <div class="modal">
+
+    <div class="modal-header">
+
+      <div class="modal-title" id="detailTitle">展项详情</div>
+
+      <button class="modal-close" onclick="closeDetail()">&times;</button>
+
+    </div>
+
+    <div class="modal-body" id="detailBody"></div>
+
+    <div class="modal-footer">
+
+      <button class="btn btn-secondary" onclick="closeDetail()">关闭</button>
+
+      <button class="btn btn-primary" id="detailEditBtn" onclick="editFromDetail()">编辑</button>
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- ============ Confirm Dialog ============ -->
+
+<div class="confirm-overlay" id="confirmOverlay">
+
+  <div class="confirm-box">
+
+    <div class="confirm-icon">
+
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+
+    </div>
+
+    <div class="confirm-title" id="confirmTitle">确认删除</div>
+
+    <div class="confirm-msg" id="confirmMsg">确定要删除这条展项记录吗？此操作不可撤销。</div>
+
+    <div class="confirm-actions">
+
+      <button class="btn btn-secondary" onclick="closeConfirm()">取消</button>
+
+      <button class="btn btn-danger" id="confirmOkBtn">确认删除</button>
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- ============ Modal: 登记更新记录 ============ -->
+
+<div class="modal-overlay" id="updateModal">
+
+  <div class="modal">
+
+    <div class="modal-header">
+
+      <div class="modal-title" id="updateModalTitle">登记更新记录</div>
+
+      <button class="modal-close" onclick="closeUpdateModal()">&times;</button>
+
+    </div>
+
+    <div class="modal-body">
+
+      <input type="hidden" id="up_id">
+
+      <div class="form-group">
+
+        <label class="form-label">关联展项 <span class="required">*</span></label>
+
+        <select class="form-select" id="up_exhibit_id" onchange="onUpdateExhibitSelect()">
+
+          <option value="">请选择展项</option>
+
+        </select>
+
+      </div>
+
+      <div class="form-row">
+
+        <div class="form-group">
+
+          <label class="form-label">展项名称</label>
+
+          <input type="text" class="form-input" id="up_exhibit_name" readonly>
+
+        </div>
+
+        <div class="form-group">
+
+          <label class="form-label">归属部门</label>
+
+          <input type="text" class="form-input" id="up_dept" readonly>
+
+        </div>
+
+      </div>
+
+      <div class="form-row">
+
+        <div class="form-group">
+
+          <label class="form-label">更新类型 <span class="required">*</span></label>
+
+          <select class="form-select" id="up_type">
+
+            <option value="内容更新">内容更新</option>
+
+            <option value="数据更新">数据更新</option>
+
+            <option value="技术升级">技术升级</option>
+
+            <option value="版本迭代">版本迭代</option>
+
+            <option value="紧急修复">紧急修复</option>
+
+            <option value="其他">其他</option>
+
+          </select>
+
+        </div>
+
+        <div class="form-group">
+
+          <label class="form-label">更新状态</label>
+
+          <select class="form-select" id="up_status">
+
+            <option value="待启动">待启动</option>
+
+            <option value="进行中">进行中</option>
+
+            <option value="已完成">已完成</option>
+
+            <option value="已逾期">已逾期</option>
+
+            <option value="已取消">已取消</option>
+
+          </select>
+
+        </div>
+
+      </div>
+
+      <div class="form-group">
+
+        <label class="form-label">更新内容描述 <span class="required">*</span></label>
+
+        <textarea class="form-textarea" id="up_desc" placeholder="本次更新了什么内容..."></textarea>
+
+      </div>
+
+      <div class="form-row three">
+
+        <div class="form-group">
+
+          <label class="form-label">更新前版本</label>
+
+          <input type="text" class="form-input" id="up_ver_old" placeholder="如 v1.0">
+
+        </div>
+
+        <div class="form-group">
+
+          <label class="form-label">更新后版本</label>
+
+          <input type="text" class="form-input" id="up_ver_new" placeholder="如 v1.1">
+
+        </div>
+
+        <div class="form-group">
+
+          <label class="form-label">执行人</label>
+
+          <input type="text" class="form-input" id="up_executor" placeholder="如 王芳">
+
+        </div>
+
+      </div>
+
+      <div class="form-row three">
+
+        <div class="form-group">
+
+          <label class="form-label">计划更新日期 <span class="required">*</span></label>
+
+          <input type="date" class="form-input" id="up_plan_date">
+
+        </div>
+
+        <div class="form-group">
+
+          <label class="form-label">实际完成日期</label>
+
+          <input type="date" class="form-input" id="up_done_date">
+
+        </div>
+
+        <div class="form-group">
+
+          <label class="form-label">验证人</label>
+
+          <input type="text" class="form-input" id="up_verifier" placeholder="如 刘运营">
+
+        </div>
+
+      </div>
+
+      <div class="form-group">
+
+        <label class="form-label">备注</label>
+
+        <textarea class="form-textarea" id="up_remark" placeholder="其他需要记录的信息..."></textarea>
+
+      </div>
+
+    </div>
+
+    <div class="modal-footer">
+
+      <button class="btn btn-secondary" onclick="closeUpdateModal()">取消</button>
+
+      <button class="btn btn-primary" onclick="saveUpdate()">保存</button>
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- ============ Modal: 展项数据 ============ -->
+<div class="modal-overlay" id="exhibitDataModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="exhibitDataModalTitle">新增展项数据</div>
+      <button class="modal-close" onclick="closeExhibitDataModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">展项名称 <span class="required">*</span></label>
+        <input type="text" class="form-input" id="ed_name" placeholder="如 序厅-建设一流企业">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">数据提供部门 <span class="required">*</span></label>
+          <input type="text" class="form-input" id="ed_dept" placeholder="如 市场部">
+        </div>
+        <div class="form-group">
+          <label class="form-label">更新时间</label>
+          <input type="text" class="form-input" id="ed_time" placeholder="如 2026年8月10日已更新">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">涉及数据（每行一条）</label>
+        <textarea class="form-textarea" id="ed_items" style="min-height:200px" placeholder="每行输入一条涉及数据，例如：&#10;企业规模总资产480亿&#10;4500万用户"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeExhibitDataModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveExhibitDataItem()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Toast ============ -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+
+/* ============================================================
+
+   体验馆展项管控系统 — 核心逻辑
+
+   数据存储：localStorage
+
+   ============================================================ */
+
+const STORAGE_KEY = 'exhibit_tracker_data_v1';
+
+const UPDATE_KEY = 'exhibit_tracker_update_v2';
+
+const STATS_KEY = 'exhibit_tracker_stats_v1';
+
+const EXHIBITDATA_KEY = 'exhibit_tracker_exhibitdata_v1';
+
+// ============ 预置示例数据 ============
+
+const SAMPLE_DATA = [
+
+  {id:'ZXD001',name:'AI智能客服体验',deptType:'能力部门',dept:'智能客服部',category:'互动体验',status:'在线',onlineDate:'2026-04-10',updateDate:'2026-07-29',location:'A区-A01',device:'触摸屏一体机',owner:'张明',contact:'13800001111',techContact:'李工',desc:'展示AI客服多轮对话与工单流转能力',remark:'配合行业部接待'},
+
+  {id:'ZXD002',name:'大模型写作工坊',deptType:'能力部门',dept:'大模型部',category:'互动体验',status:'在线',onlineDate:'2026-01-20',updateDate:'2026-05-05',location:'A区-A02',device:'触摸屏一体机',owner:'王芳',contact:'13800002222',techContact:'陈工',desc:'展示大模型辅助写作与风格切换',remark:'内容需更新案例'},
+
+  {id:'ZXD003',name:'智慧城市沙盘',deptType:'行业部门',dept:'政务行业部',category:'数据大屏',status:'在线',onlineDate:'2026-03-11',updateDate:'2026-07-19',location:'B区-B01',device:'LED大屏',owner:'刘强',contact:'13800003333',techContact:'赵工',desc:'展示城市治理数据中台与可视化',remark:''},
+
+  {id:'ZXD004',name:'金融风控演示',deptType:'行业部门',dept:'金融行业部',category:'互动体验',status:'在线',onlineDate:'2026-02-09',updateDate:'2026-04-20',location:'B区-B02',device:'触摸屏一体机',owner:'陈静',contact:'13800004444',techContact:'孙工',desc:'展示风控模型评分与预警链路',remark:'数据已过期需更新'},
+
+  {id:'ZXD005',name:'智能语音质检',deptType:'能力部门',dept:'语音部',category:'互动体验',status:'待更新',onlineDate:'2025-10-13',updateDate:'2026-03-31',location:'A区-A03',device:'触摸屏一体机',owner:'赵磊',contact:'13800005555',techContact:'周工',desc:'展示语音转写与质检分析',remark:'已下发更新通知'},
+
+  {id:'ZXD006',name:'数字人播报',deptType:'能力部门',dept:'数字人部',category:'视频展示',status:'在线',onlineDate:'2026-05-09',updateDate:'2026-07-24',location:'A区-A04',device:'竖屏显示器',owner:'孙丽',contact:'13800006666',techContact:'吴工',desc:'数字人新闻播报与定制形象',remark:''},
+
+  {id:'ZXD007',name:'工业互联网平台',deptType:'行业部门',dept:'工业行业部',category:'数据大屏',status:'在线',onlineDate:'2025-12-22',updateDate:'2026-04-30',location:'B区-B03',device:'LED大屏',owner:'周涛',contact:'13800007777',techContact:'郑工',desc:'工业设备监控与预测性维护',remark:'数据源需对接'},
+
+  {id:'ZXD008',name:'AR沉浸式体验',deptType:'能力部门',dept:'视觉部',category:'互动体验',status:'在线',onlineDate:'2026-06-09',updateDate:'2026-08-03',location:'C区-C01',device:'AR设备',owner:'吴敏',contact:'13800008888',techContact:'黄工',desc:'AR空间标注与虚实融合',remark:''},
+
+  {id:'ZXD009',name:'旧版知识图谱',deptType:'能力部门',dept:'知识图谱部',category:'互动体验',status:'待下线',onlineDate:'2025-06-03',updateDate:'2026-01-20',location:'A区-A05',device:'触摸屏一体机',owner:'郑伟',contact:'13800009999',techContact:'林工',desc:'旧版知识图谱检索（已过时）',remark:'运营确认为下线'},
+
+  {id:'ZXD010',name:'智慧医疗方案',deptType:'行业部门',dept:'医疗行业部',category:'视频展示',status:'在线',onlineDate:'2026-04-20',updateDate:'2026-07-14',location:'B区-B04',device:'横屏显示器',owner:'黄琳',contact:'13800010000',techContact:'高工',desc:'医疗AI辅助诊断方案展示',remark:''},
+
+  {id:'ZXD011',name:'智能运维大屏',deptType:'行业部门',dept:'运维行业部',category:'数据大屏',status:'待更新',onlineDate:'2026-01-01',updateDate:'2026-03-21',location:'B区-B05',device:'LED大屏',owner:'高翔',contact:'13800011111',techContact:'马工',desc:'智能运维监控与告警',remark:'超过3个月未更新'},
+
+  {id:'ZXD012',name:'区块链溯源',deptType:'能力部门',dept:'区块链部',category:'互动体验',status:'在线',onlineDate:'2026-05-30',updateDate:'2026-07-31',location:'C区-C02',device:'触摸屏一体机',owner:'马超',contact:'13800012222',techContact:'杨工',desc:'区块链商品溯源全链路展示',remark:''},
+
+];
+
+// ============ 更新记录示例数据 ============
+
+const SAMPLE_UPDATE = [
+  {
+    "id": "JL001",
+    "exhibitId": "ZXD001",
+    "exhibitName": "移动网",
+    "dept": "产品运营中心",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "陈艺璇",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL002",
+    "exhibitId": "ZXD002",
+    "exhibitName": "宽带网",
+    "dept": "云网运营中心",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "王林林",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL003",
+    "exhibitId": "ZXD003",
+    "exhibitName": "卫星网",
+    "dept": "产品运营中心",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "李亚斌",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL004",
+    "exhibitId": "ZXD004",
+    "exhibitName": "物联网",
+    "dept": "产品运营中心",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "甘凯华",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL005",
+    "exhibitId": "ZXD005",
+    "exhibitName": "视联网",
+    "dept": "AI与大数据中心",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "崔振威",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL006",
+    "exhibitId": "ZXD006",
+    "exhibitName": "低空经济体系",
+    "dept": "产品运营中心",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "陈艺璇",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL007",
+    "exhibitId": "ZXD007",
+    "exhibitName": "天翼星云平台",
+    "dept": "产品运营中心",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "陈艺璇",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL008",
+    "exhibitId": "ZXD008",
+    "exhibitName": "5G-A能力介绍",
+    "dept": "产品运营中心",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "陈艺璇",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL009",
+    "exhibitId": "ZXD009",
+    "exhibitName": "全省布局",
+    "dept": "云省分公司",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "谢晓辉",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL010",
+    "exhibitId": "ZXD010",
+    "exhibitName": "通智超量",
+    "dept": "云省分公司",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "谢晓辉",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL011",
+    "exhibitId": "ZXD011",
+    "exhibitName": "全省行业云拓展",
+    "dept": "云省分公司",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "谢晓辉",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL012",
+    "exhibitId": "ZXD012",
+    "exhibitName": "政务云案例",
+    "dept": "云省分公司",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "谢晓辉",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL013",
+    "exhibitId": "ZXD013",
+    "exhibitName": "乘云平台",
+    "dept": "云省分公司",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "谢晓辉",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL014",
+    "exhibitId": "ZXD014",
+    "exhibitName": "牧云平台",
+    "dept": "云省分公司",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "谢晓辉",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL015",
+    "exhibitId": "ZXD015",
+    "exhibitName": "息壤算力平台",
+    "dept": "云省分公司",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "谢晓辉",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL016",
+    "exhibitId": "ZXD016",
+    "exhibitName": "南岗数据中心",
+    "dept": "云省分公司",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "谢晓辉",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL017",
+    "exhibitId": "ZXD017",
+    "exhibitName": "数据中心介绍",
+    "dept": "云省分公司",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "谢晓辉",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL018",
+    "exhibitId": "ZXD018",
+    "exhibitName": "国云发展历程",
+    "dept": "云省分公司",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "谢晓辉",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL019",
+    "exhibitId": "ZXD019",
+    "exhibitName": "全国算力布局",
+    "dept": "云省分公司",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "谢晓辉",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL020",
+    "exhibitId": "ZXD020",
+    "exhibitName": "智云超市",
+    "dept": "云省分公司",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "谢晓辉",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL021",
+    "exhibitId": "ZXD021",
+    "exhibitName": "天翼云产品",
+    "dept": "云省分公司",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "谢晓辉",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL022",
+    "exhibitId": "ZXD022",
+    "exhibitName": "自主可控云安全",
+    "dept": "云省分公司",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "谢晓辉",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL023",
+    "exhibitId": "ZXD023",
+    "exhibitName": "天翼云电脑",
+    "dept": "云省分公司",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "谢晓辉",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL024",
+    "exhibitId": "ZXD024",
+    "exhibitName": "安全大脑",
+    "dept": "产品运营中心",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "吴子谦",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL025",
+    "exhibitId": "ZXD025",
+    "exhibitName": "皖安平台",
+    "dept": "产品运营中心",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "吴子谦",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL026",
+    "exhibitId": "ZXD026",
+    "exhibitName": "攻防演练平台",
+    "dept": "产品运营中心",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "吴子谦",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL027",
+    "exhibitId": "ZXD027",
+    "exhibitName": "城市生命线安全",
+    "dept": "产品运营中心",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "吴子谦",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL028",
+    "exhibitId": "ZXD028",
+    "exhibitName": "燃气卫士产品",
+    "dept": "产品运营中心",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "吴子谦",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL029",
+    "exhibitId": "ZXD029",
+    "exhibitName": "见微安全大模型",
+    "dept": "产品运营中心",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "吴子谦",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL030",
+    "exhibitId": "ZXD030",
+    "exhibitName": "态势感知",
+    "dept": "产品运营中心",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "吴子谦",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL031",
+    "exhibitId": "ZXD031",
+    "exhibitName": "抗DDOS",
+    "dept": "产品运营中心",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "吴子谦",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL032",
+    "exhibitId": "ZXD032",
+    "exhibitName": "量子城域网",
+    "dept": "产品运营中心",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "朱国强",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL033",
+    "exhibitId": "ZXD033",
+    "exhibitName": "量子密信密话",
+    "dept": "产品运营中心",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "朱国强",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL034",
+    "exhibitId": "ZXD034",
+    "exhibitName": "量子云总机",
+    "dept": "产品运营中心",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "朱国强",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL035",
+    "exhibitId": "ZXD035",
+    "exhibitName": "量子OTN",
+    "dept": "产品运营中心",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "朱国强",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL036",
+    "exhibitId": "ZXD036",
+    "exhibitName": "量子云印章",
+    "dept": "产品运营中心",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "朱国强",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL037",
+    "exhibitId": "ZXD037",
+    "exhibitName": "量子密改",
+    "dept": "产品运营中心",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "朱国强",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL038",
+    "exhibitId": "ZXD038",
+    "exhibitName": "智绘乡村",
+    "dept": "数智省分公司",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "徐宵月",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL039",
+    "exhibitId": "ZXD039",
+    "exhibitName": "工业智脑",
+    "dept": "数智省分公司",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "徐宵月",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL040",
+    "exhibitId": "ZXD040",
+    "exhibitName": "智慧园区",
+    "dept": "数智省分公司",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "徐宵月",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL041",
+    "exhibitId": "ZXD041",
+    "exhibitName": "智慧工厂",
+    "dept": "数智省分公司",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "徐宵月",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL042",
+    "exhibitId": "ZXD042",
+    "exhibitName": "智慧工地",
+    "dept": "数智省分公司",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "徐宵月",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL043",
+    "exhibitId": "ZXD043",
+    "exhibitName": "翼云社区",
+    "dept": "数智省分公司",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "徐宵月",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL044",
+    "exhibitId": "ZXD044",
+    "exhibitName": "全域智游",
+    "dept": "数智省分公司",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "徐宵月",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL045",
+    "exhibitId": "ZXD045",
+    "exhibitName": "AI+智慧楼宇",
+    "dept": "数智省分公司",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "徐宵月",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL046",
+    "exhibitId": "ZXD046",
+    "exhibitName": "校园一体化平台",
+    "dept": "数智省分公司",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "徐宵月",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL047",
+    "exhibitId": "ZXD047",
+    "exhibitName": "一键报警",
+    "dept": "数智省分公司",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "徐宵月",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL048",
+    "exhibitId": "ZXD048",
+    "exhibitName": "平安校园管理",
+    "dept": "教育BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "陈炳",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL049",
+    "exhibitId": "ZXD049",
+    "exhibitName": "智心护航",
+    "dept": "教育BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "陈炳",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL050",
+    "exhibitId": "ZXD050",
+    "exhibitName": "智慧校园综合",
+    "dept": "教育BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "陈炳",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL051",
+    "exhibitId": "ZXD051",
+    "exhibitName": "职业院校数字基座",
+    "dept": "教育BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "陈炳",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL052",
+    "exhibitId": "ZXD052",
+    "exhibitName": "科研助手",
+    "dept": "教育BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "陈炳",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL053",
+    "exhibitId": "ZXD053",
+    "exhibitName": "工业全栈能力",
+    "dept": "工业BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "于佳程",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL054",
+    "exhibitId": "ZXD054",
+    "exhibitName": "翼云采全连接工厂",
+    "dept": "工业BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "于佳程",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL055",
+    "exhibitId": "ZXD055",
+    "exhibitName": "汽车及零部件行业平台",
+    "dept": "汽车BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "王灼军",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL056",
+    "exhibitId": "ZXD056",
+    "exhibitName": "装备制造行业平台",
+    "dept": "工业BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "于佳程",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL057",
+    "exhibitId": "ZXD057",
+    "exhibitName": "采购与供应商管理(SRM)平台",
+    "dept": "工业BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "于佳程",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL058",
+    "exhibitId": "ZXD058",
+    "exhibitName": "数字政府全栈能力",
+    "dept": "数字政府BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "张学志",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL059",
+    "exhibitId": "ZXD059",
+    "exhibitName": "智能服务热线-核心业务",
+    "dept": "数字政府BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "张学志",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL060",
+    "exhibitId": "ZXD060",
+    "exhibitName": "智能服务热线-智能化场景",
+    "dept": "数字政府BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "张学志",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL061",
+    "exhibitId": "ZXD061",
+    "exhibitName": "智享养老平台",
+    "dept": "数智省分公司",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "徐宵月",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL062",
+    "exhibitId": "ZXD062",
+    "exhibitName": "智慧社工",
+    "dept": "数字政府BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "张学志",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL063",
+    "exhibitId": "ZXD063",
+    "exhibitName": "矛调AI助手",
+    "dept": "AI与大数据中心",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "崔振威",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL064",
+    "exhibitId": "ZXD064",
+    "exhibitName": "科技赋能平安中国",
+    "dept": "政法应急BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "王敬元",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL065",
+    "exhibitId": "ZXD065",
+    "exhibitName": "智慧灌区",
+    "dept": "农业文旅BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "吴寅峰",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL066",
+    "exhibitId": "ZXD066",
+    "exhibitName": "高速无人机监管平台",
+    "dept": "交通住建BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "曹立松",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL067",
+    "exhibitId": "ZXD067",
+    "exhibitName": "治安要素平台",
+    "dept": "政法应急BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "王敬元",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL068",
+    "exhibitId": "ZXD068",
+    "exhibitName": "智慧校园全栈能力",
+    "dept": "教育BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "陈炳",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL069",
+    "exhibitId": "ZXD069",
+    "exhibitName": "AI智慧教学",
+    "dept": "教育BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "陈炳",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL070",
+    "exhibitId": "ZXD070",
+    "exhibitName": "教育云电脑",
+    "dept": "教育BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "陈炳",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL071",
+    "exhibitId": "ZXD071",
+    "exhibitName": "卫健全栈能力",
+    "dept": "卫健BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "蒋侃",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL072",
+    "exhibitId": "ZXD072",
+    "exhibitName": "医院一体化平台",
+    "dept": "卫健BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "蒋侃",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL073",
+    "exhibitId": "ZXD073",
+    "exhibitName": "医共体信息平台",
+    "dept": "卫健BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "蒋侃",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL074",
+    "exhibitId": "ZXD074",
+    "exhibitName": "医疗影像云平台",
+    "dept": "卫健BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "蒋侃",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL075",
+    "exhibitId": "ZXD075",
+    "exhibitName": "智云新康体检",
+    "dept": "数智省分公司",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "徐宵月",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL076",
+    "exhibitId": "ZXD076",
+    "exhibitName": "慢性病防治系统",
+    "dept": "卫健BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "蒋侃",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL077",
+    "exhibitId": "ZXD077",
+    "exhibitName": "交通住建全栈能力",
+    "dept": "交通住建BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "曹立松",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL078",
+    "exhibitId": "ZXD078",
+    "exhibitName": "低空经济能力体系",
+    "dept": "交通住建BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "曹立松",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL079",
+    "exhibitId": "ZXD079",
+    "exhibitName": "物业监管平台",
+    "dept": "交通住建BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "曹立松",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL080",
+    "exhibitId": "ZXD080",
+    "exhibitName": "城市智治运管服",
+    "dept": "数智省分公司",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "徐宵月",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL081",
+    "exhibitId": "ZXD081",
+    "exhibitName": "交通数据工程",
+    "dept": "交通住建BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "曹立松",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL082",
+    "exhibitId": "ZXD082",
+    "exhibitName": "农业文旅全栈能力",
+    "dept": "农业文旅BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "吴寅峰",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL083",
+    "exhibitId": "ZXD083",
+    "exhibitName": "智慧景区",
+    "dept": "农业文旅BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "吴寅峰",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL084",
+    "exhibitId": "ZXD084",
+    "exhibitName": "文旅一机游",
+    "dept": "农业文旅BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "吴寅峰",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL085",
+    "exhibitId": "ZXD085",
+    "exhibitName": "高标准农田",
+    "dept": "农业文旅BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "吴寅峰",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL086",
+    "exhibitId": "ZXD086",
+    "exhibitName": "AI+金融全栈能力",
+    "dept": "金融BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "汤成",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL087",
+    "exhibitId": "ZXD087",
+    "exhibitName": "5G商企专网",
+    "dept": "商客BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "章静",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL088",
+    "exhibitId": "ZXD088",
+    "exhibitName": "金融大数据服务",
+    "dept": "金融BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "汤成",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL089",
+    "exhibitId": "ZXD089",
+    "exhibitName": "中国电信金融行业标杆案例",
+    "dept": "金融BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "汤成",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL090",
+    "exhibitId": "ZXD090",
+    "exhibitName": "五车一底座",
+    "dept": "汽车BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "王灼军",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL091",
+    "exhibitId": "ZXD091",
+    "exhibitName": "智能座舱大模型",
+    "dept": "汽车BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "王灼军",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL092",
+    "exhibitId": "ZXD092",
+    "exhibitName": "新能源汽车企业质量管控",
+    "dept": "汽车BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "王灼军",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL093",
+    "exhibitId": "ZXD093",
+    "exhibitName": "汽车智慧运营",
+    "dept": "汽车BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "王灼军",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL094",
+    "exhibitId": "ZXD094",
+    "exhibitName": "车企能能客服",
+    "dept": "汽车BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "王灼军",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL095",
+    "exhibitId": "ZXD095",
+    "exhibitName": "汽车研发仿真云",
+    "dept": "汽车BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "王灼军",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL096",
+    "exhibitId": "ZXD096",
+    "exhibitName": "商户细分场景解决方案",
+    "dept": "商客BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "章静",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL097",
+    "exhibitId": "ZXD097",
+    "exhibitName": "智慧酒店",
+    "dept": "商客BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "章静",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL098",
+    "exhibitId": "ZXD098",
+    "exhibitName": "连锁公司信息化解决方案",
+    "dept": "商客BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "章静",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL099",
+    "exhibitId": "ZXD099",
+    "exhibitName": "餐饮：互联网+明厨亮灶",
+    "dept": "商客BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "章静",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL100",
+    "exhibitId": "ZXD100",
+    "exhibitName": "直播：行业组网+翼智播",
+    "dept": "商客BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "章静",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL101",
+    "exhibitId": "ZXD101",
+    "exhibitName": "楼宇：标准ICT",
+    "dept": "商客BU",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "章静",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL102",
+    "exhibitId": "ZXD102",
+    "exhibitName": "核心产品及重点能力布局",
+    "dept": "数智省分公司",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "徐宵月",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL103",
+    "exhibitId": "ZXD103",
+    "exhibitName": "省市研发团队",
+    "dept": "数智省分公司",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "徐宵月",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL104",
+    "exhibitId": "ZXD104",
+    "exhibitName": "大数据能力三件套",
+    "dept": "AI与大数据中心",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "崔振威",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL105",
+    "exhibitId": "ZXD105",
+    "exhibitName": "数据产权登记平台",
+    "dept": "AI与大数据中心",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "崔振威",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL106",
+    "exhibitId": "ZXD106",
+    "exhibitName": "数据流通交易平台",
+    "dept": "AI与大数据中心",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "崔振威",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL107",
+    "exhibitId": "ZXD107",
+    "exhibitName": "星海·数据智能中台",
+    "dept": "AI与大数据中心",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "崔振威",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL108",
+    "exhibitId": "ZXD108",
+    "exhibitName": "数据标注综合服务平台",
+    "dept": "AI与大数据中心",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "崔振威",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL109",
+    "exhibitId": "ZXD109",
+    "exhibitName": "肥皂质检平台",
+    "dept": "AI与大数据中心",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "崔振威",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL110",
+    "exhibitId": "ZXD110",
+    "exhibitName": "通用AI平台",
+    "dept": "AI与大数据中心",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "崔振威",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL111",
+    "exhibitId": "ZXD111",
+    "exhibitName": "矛盾调解大模型",
+    "dept": "AI与大数据中心",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "崔振威",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL112",
+    "exhibitId": "ZXD112",
+    "exhibitName": "合同审查",
+    "dept": "AI与大数据中心",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "崔振威",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL113",
+    "exhibitId": "ZXD113",
+    "exhibitName": "翼智AI平台",
+    "dept": "AI与大数据中心",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "崔振威",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL114",
+    "exhibitId": "ZXD114",
+    "exhibitName": "奖补大模型",
+    "dept": "AI与大数据中心",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "崔振威",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL115",
+    "exhibitId": "ZXD115",
+    "exhibitName": "智能问数",
+    "dept": "AI与大数据中心",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "崔振威",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL116",
+    "exhibitId": "ZXD116",
+    "exhibitName": "智云安徽体系",
+    "dept": "AI与大数据中心",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "崔振威",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL117",
+    "exhibitId": "ZXD117",
+    "exhibitName": "皖美AI超市",
+    "dept": "AI与大数据中心",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "崔振威",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL118",
+    "exhibitId": "ZXD118",
+    "exhibitName": "Teleagent",
+    "dept": "AI与大数据中心",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "崔振威",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL119",
+    "exhibitId": "ZXD119",
+    "exhibitName": "AI视觉质检",
+    "dept": "AI与大数据中心",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "崔振威",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL120",
+    "exhibitId": "ZXD120",
+    "exhibitName": "基层治理",
+    "dept": "AI与大数据中心",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "崔振威",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL121",
+    "exhibitId": "ZXD121",
+    "exhibitName": "智慧劝导员",
+    "dept": "AI与大数据中心",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "崔振威",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL122",
+    "exhibitId": "ZXD122",
+    "exhibitName": "智慧派出所",
+    "dept": "AI与大数据中心",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "崔振威",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL123",
+    "exhibitId": "ZXD123",
+    "exhibitName": "皖安智盾",
+    "dept": "数智省分公司",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "徐宵月",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL124",
+    "exhibitId": "ZXD124",
+    "exhibitName": "警务数智赋能平台",
+    "dept": "数智省分公司",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "徐宵月",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL125",
+    "exhibitId": "ZXD125",
+    "exhibitName": "智能服务热线",
+    "dept": "数智省分公司",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "徐宵月",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL126",
+    "exhibitId": "ZXD126",
+    "exhibitName": "互联网+AI监管",
+    "dept": "数智省分公司",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "徐宵月",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL127",
+    "exhibitId": "ZXD127",
+    "exhibitName": "AI+工智感",
+    "dept": "数智省分公司",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "徐宵月",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL128",
+    "exhibitId": "ZXD128",
+    "exhibitName": "客服零人工",
+    "dept": "数智省分公司",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "徐宵月",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL129",
+    "exhibitId": "ZXD129",
+    "exhibitName": "产销品服务前置AI智审",
+    "dept": "数智省分公司",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "徐宵月",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL130",
+    "exhibitId": "ZXD130",
+    "exhibitName": "智能全光组网",
+    "dept": "数智省分公司",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "徐宵月",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL131",
+    "exhibitId": "ZXD131",
+    "exhibitName": "AI量子云总机",
+    "dept": "数智省分公司",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "徐宵月",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL132",
+    "exhibitId": "ZXD132",
+    "exhibitName": "AI智能运维",
+    "dept": "数智省分公司",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "徐宵月",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL133",
+    "exhibitId": "ZXD133",
+    "exhibitName": "低空经济十大应用场景",
+    "dept": "产品运营中心",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "陈艺璇",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：#REF!"
+  },
+  {
+    "id": "JL134",
+    "exhibitId": "ZXD134",
+    "exhibitName": "智算资源布局",
+    "dept": "云省分公司",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "谢晓辉",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：#REF!"
+  },
+  {
+    "id": "JL135",
+    "exhibitId": "ZXD135",
+    "exhibitName": "重点行业案例",
+    "dept": "云省分公司",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "谢晓辉",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL136",
+    "exhibitId": "ZXD136",
+    "exhibitName": "天翼云产品",
+    "dept": "云省分公司",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "谢晓辉",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  },
+  {
+    "id": "JL137",
+    "exhibitId": "ZXD137",
+    "exhibitName": "天翼云电脑",
+    "dept": "云省分公司",
+    "type": "",
+    "status": "已完成",
+    "desc": "",
+    "verOld": "",
+    "verNew": "",
+    "planDate": "",
+    "doneDate": "2026-08-14",
+    "executor": "谢晓辉",
+    "verifier": "",
+    "remark": "最后更新：2026-08-14 | 更新状态：正常"
+  }
+];
+
+let appData = [];
+
+let updateData = [];
+
+let exhibitData = [];
+
+let currentPage = 'dashboard';
+
+let currentView = 'card'; // card | table
+
+let filterStatus = '';    // 状态筛选
+
+let filterDeptType = '';  // 部门类型筛选
+
+let filterDept = '';      // 部门名称筛选
+
+let filterCategory = '';  // 类别筛选
+
+let filterKeyword = '';   // 关键词搜索
+
+let statFilter = '';      // 统计卡片点击筛选
+
+let updateFilter = '';    // 更新状态筛选
+
+// ============ 初始化 ============
+
+function init() {
+
+  const saved = localStorage.getItem(STORAGE_KEY);
+
+  if (saved) {
+
+    try { appData = JSON.parse(saved); } catch(e) { appData = [...SAMPLE_DATA]; }
+
+  } else {
+
+    appData = [...SAMPLE_DATA];
+
+    saveData();
+
+  }
+
+  // 加载更新记录
+
+  const savedUp = localStorage.getItem(UPDATE_KEY);
+
+  if (savedUp) { try { updateData = JSON.parse(savedUp); } catch(e) { updateData = []; } }
+
+  else { updateData = [...SAMPLE_UPDATE]; saveUpdate(); }
+
+  // 加载展项数据
+
+  const savedEd = localStorage.getItem(EXHIBITDATA_KEY);
+
+  if (savedEd) { try { exhibitData = JSON.parse(savedEd); } catch(e) { exhibitData = []; } }
+
+  else { exhibitData = [...SAMPLE_EXHIBIT_DATA]; saveExhibitData(); }
+
+  // 导航绑定
+
+  document.querySelectorAll('.nav-item').forEach(item => {
+
+    item.addEventListener('click', () => {
+
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+      item.classList.add('active');
+
+      currentPage = item.dataset.page;
+
+      statFilter = '';
+
+      updateFilter = '';
+
+      // 顶栏按钮文本切换
+
+      const addText = document.getElementById('addBtnText');
+
+      if (currentPage === 'exhibitData') addText.textContent = '新增数据';
+
+      else if (currentPage === 'update') addText.textContent = '登记更新';
+
+      else addText.textContent = '新增展项';
+
+      render();
+
+    });
+
+  });
+
+  // 导入文件监听
+
+  document.getElementById('importFile').addEventListener('change', handleImport);
+
+  render();
+
+}
+
+function saveData() {
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+
+}
+
+function saveUpdate() {
+
+  localStorage.setItem(UPDATE_KEY, JSON.stringify(updateData));
+
+}
+
+function saveExhibitData() {
+
+  localStorage.setItem(EXHIBITDATA_KEY, JSON.stringify(exhibitData));
+
+}
+
+// ============ 日期/预警计算 ============
+
+function daysSince(dateStr) {
+
+  if (!dateStr) return null;
+
+  const d = new Date(dateStr);
+
+  const today = new Date();
+
+  today.setHours(0,0,0,0);
+
+  d.setHours(0,0,0,0);
+
+  return Math.floor((today - d) / 86400000);
+
+}
+
+function getUpdateStatus(item) {
+
+  if (item.status === '下线') return { text: '下线', class: 'tag-gray' };
+
+  if (item.status === '新增') return { text: '新增', class: 'tag-blue' };
+
+  const days = daysSince(item.updateDate);
+
+  if (days === null) return { text: '未登记', class: 'tag-yellow' };
+
+  if (days > 90) return { text: '超期预警', class: 'tag-warn' };
+
+  if (days > 60) return { text: '即将到期', class: 'tag-yellow' };
+
+  return { text: '正常', class: 'tag-green' };
+
+}
+
+function getStatusTag(status) {
+
+  const map = {
+
+    '在线': 'tag-green','下线': 'tag-gray','新增': 'tag-blue'
+
+  };
+
+  return `<span class="tag ${map[status] || 'tag-gray'}">${status}</span>`;
+
+}
+
+function getStatusClass(status) {
+
+  const map = {'在线':'online','下线':'removed','新增':'dev'};
+
+  return 'status-' + (map[status] || '');
+
+}
+
+// ============ 过滤 ============
+
+function getFilteredData() {
+
+  let result = [...appData];
+
+  // 页面级筛选
+
+  if (currentPage === 'warning') {
+
+    result = result.filter(item => {
+
+      const us = getUpdateStatus(item);
+
+      return us.text === '超期预警' || us.text === '即将到期';
+
+    });
+
+  }
+
+  // 统计卡片筛选
+
+  if (statFilter) {
+
+    if (statFilter === 'online') result = result.filter(i => i.status === '在线');
+
+    else if (statFilter === 'new') result = result.filter(i => i.status === '新增');
+
+    else if (statFilter === 'offline') result = result.filter(i => i.status === '下线');
+
+    else if (statFilter === 'warning') {
+
+      result = result.filter(i => {
+
+        const us = getUpdateStatus(i);
+
+        return us.text === '超期预警' || us.text === '即将到期';
+
+      });
+
+    }
+
+  }
+
+  // 条件筛选
+
+  if (filterStatus) result = result.filter(i => i.status === filterStatus);
+
+  if (filterDeptType) result = result.filter(i => i.deptType === filterDeptType);
+
+  if (filterDept) result = result.filter(i => i.dept.includes(filterDept));
+
+  if (filterCategory) result = result.filter(i => i.category === filterCategory);
+
+  if (filterKeyword) {
+
+    const kw = filterKeyword.toLowerCase();
+
+    result = result.filter(i =>
+
+      (i.name||'').toLowerCase().includes(kw) ||
+
+      (i.id||'').toLowerCase().includes(kw) ||
+
+      (i.dept||'').toLowerCase().includes(kw) ||
+
+      (i.owner||'').toLowerCase().includes(kw) ||
+
+      (i.location||'').toLowerCase().includes(kw) ||
+
+      (i.desc||'').toLowerCase().includes(kw)
+
+    );
+
+  }
+
+  return result;
+
+}
+
+// 获取部门列表（按筛选的部门类型联动过滤）
+
+function getDeptList() {
+
+  if (filterDeptType && DEPT_OPTIONS[filterDeptType]) {
+
+    return DEPT_OPTIONS[filterDeptType].slice().sort();
+
+  }
+
+  const depts = [...new Set(appData.map(i => i.dept).filter(Boolean))];
+
+  return depts.sort();
+
+}
+
+// ============ 渲染 ============
+
+function render() {
+
+  const titles = { dashboard: '展项台账', warning: '超期预警', stats: '数据统计', exhibitData: '展项数据', update: '更新记录' };
+
+  document.getElementById('pageTitle').textContent = titles[currentPage] || '展项台账';
+
+  if (currentPage === 'stats') {
+
+    renderStatsPage();
+
+    return;
+
+  }
+
+  if (currentPage === 'exhibitData') {
+
+    renderExhibitDataPage();
+
+    return;
+
+  }
+
+  if (currentPage === 'update') {
+
+    renderUpdatePage();
+
+    return;
+
+  }
+
+  const content = document.getElementById('content');
+
+  const data = getFilteredData();
+
+  // 统计卡片
+
+  const total = appData.length;
+
+  const onlineCount = appData.filter(i => i.status === '在线').length;
+
+  const newCount = appData.filter(i => i.status === '新增').length;
+
+  const offlineCount = appData.filter(i => i.status === '下线').length;
+
+  const warningCount = appData.filter(i => {
+
+    const us = getUpdateStatus(i);
+
+    return us.text === '超期预警' || us.text === '即将到期';
+
+  }).length;
+
+  let html = '';
+
+  // 统计卡片行
+
+  html += `<div class="stats-row">
+
+    <div class="stat-card ${statFilter==='total'?'active':''}" onclick="toggleStatFilter('total')">
+
+      <div class="stat-label">展项总数</div>
+
+      <div class="stat-value">${total}</div>
+
+    </div>
+
+    <div class="stat-card ${statFilter==='online'?'active':''}" onclick="toggleStatFilter('online')">
+
+      <div class="stat-label">在线运行</div>
+
+      <div class="stat-value" style="color:var(--green)">${onlineCount}</div>
+
+    </div>
+
+    <div class="stat-card ${statFilter==='new'?'active':''}" onclick="toggleStatFilter('new')">
+
+      <div class="stat-label">新增</div>
+
+      <div class="stat-value" style="color:var(--blue)">${newCount}</div>
+
+    </div>
+
+    <div class="stat-card ${statFilter==='offline'?'active':''}" onclick="toggleStatFilter('offline')">
+
+      <div class="stat-label">下线</div>
+
+      <div class="stat-value">${offlineCount}</div>
+
+    </div>
+
+    <div class="stat-card ${statFilter==='warning'?'active':''} warning" onclick="toggleStatFilter('warning')">
+
+      <div class="stat-label">需关注</div>
+
+      <div class="stat-value">${warningCount}</div>
+
+    </div>
+
+  </div>`;
+
+  // 筛选栏
+
+  html += `<div class="filter-bar">
+
+    <div class="filter-group">
+
+      <span class="filter-label">状态</span>
+
+      <select class="filter-select" id="fl_status" onchange="onFilterChange('status', this.value)">
+
+        <option value="">全部</option>
+
+        <option value="在线" ${filterStatus==='在线'?'selected':''}>在线</option>
+
+        <option value="下线" ${filterStatus==='下线'?'selected':''}>下线</option>
+
+        <option value="新增" ${filterStatus==='新增'?'selected':''}>新增</option>
+
+      </select>
+
+    </div>
+
+    <div class="filter-group">
+
+      <span class="filter-label">部门类型</span>
+
+      <select class="filter-select" id="fl_depttype" onchange="onFilterChange('deptType', this.value)">
+
+        <option value="">全部</option>
+
+        <option value="能力部门" ${filterDeptType==='能力部门'?'selected':''}>能力部门</option>
+
+        <option value="行业部门" ${filterDeptType==='行业部门'?'selected':''}>行业部门</option>
+
+      </select>
+
+    </div>
+
+    <div class="filter-group">
+
+      <span class="filter-label">归属部门</span>
+
+      <select class="filter-select" id="fl_dept" onchange="onFilterChange('dept', this.value)">
+
+        <option value="">全部</option>
+
+        ${getDeptList().map(d => `<option value="${d}" ${filterDept===d?'selected':''}>${d}</option>`).join('')}
+
+      </select>
+
+    </div>
+
+    <div class="filter-group">
+
+      <span class="filter-label">类别</span>
+
+      <select class="filter-select" id="fl_cat" onchange="onFilterChange('category', this.value)">
+
+        <option value="">全部</option>
+
+        <option value="互动体验" ${filterCategory==='互动体验'?'selected':''}>互动体验</option>
+
+        <option value="数据大屏" ${filterCategory==='数据大屏'?'selected':''}>数据大屏</option>
+
+        <option value="视频展示" ${filterCategory==='视频展示'?'selected':''}>视频展示</option>
+
+        <option value="实物展示" ${filterCategory==='实物展示'?'selected':''}>实物展示</option>
+
+        <option value="PPT" ${filterCategory==='PPT'?'selected':''}>PPT</option>
+
+        <option value="其他" ${filterCategory==='其他'?'selected':''}>其他</option>
+
+      </select>
+
+    </div>
+
+    <div class="filter-group">
+
+      <input type="text" class="filter-input" id="fl_kw" placeholder="搜索编号/名称/负责人..." value="${filterKeyword}" oninput="onFilterChange('keyword', this.value)">
+
+    </div>
+
+    <div class="filter-spacer"></div>
+
+    <div class="view-toggle">
+
+      <button class="${currentView==='card'?'active':''}" onclick="switchView('card')">卡片</button>
+
+      <button class="${currentView==='table'?'active':''}" onclick="switchView('table')">列表</button>
+
+    </div>
+
+  </div>`;
+
+  // 数据展示
+
+  if (data.length === 0) {
+
+    html += `<div class="empty">
+
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+
+      <p>没有符合条件的展项</p>
+
+    </div>`;
+
+  } else {
+
+    if (currentView === 'card') {
+
+      html += '<div class="card-grid">';
+
+      data.forEach(item => { html += renderCard(item); });
+
+      html += '</div>';
+
+    } else {
+
+      html += renderTable(data);
+
+    }
+
+  }
+
+  content.innerHTML = html;
+
+}
+
+// ============ 卡片渲染 ============
+
+function renderCard(item) {
+
+  const us = getUpdateStatus(item);
+
+  const days = daysSince(item.updateDate);
+
+  return `
+
+    <div class="exhibit-card ${getStatusClass(item.status)}" onclick="openDetail('${item.id}')">
+
+      <div class="card-header">
+
+        <div class="card-title-row">
+
+          <div class="card-title">${esc(item.name)}</div>
+
+          <div class="card-id">${esc(item.id)}</div>
+
+        </div>
+
+        <div class="card-tags">
+
+          ${getStatusTag(item.status)}
+
+          <span class="tag ${us.class}">${us.text}</span>
+
+          <span class="tag tag-blue">${esc(item.category||'')}</span>
+
+        </div>
+
+      </div>
+
+      <div class="card-body">
+
+        <div class="card-row"><span class="label">归属部门</span><span class="value">${esc(item.deptType||'')} · ${esc(item.dept||'')}</span></div>
+
+        <div class="card-row"><span class="label">最后更新</span><span class="value">${esc(item.updateDate||'未登记')}（${days!==null?days+'天前':'-'}）</span></div>
+
+        <div class="card-row"><span class="label">展项位置</span><span class="value">${esc(item.location||'-')}</span></div>
+
+        <div class="card-row"><span class="label">负责人</span><span class="value">${esc(item.owner||'-')}</span></div>
+
+      </div>
+
+      <div class="card-footer">
+
+        <span style="font-size:12px;color:var(--gray-400);word-break:break-all;flex:1;margin-right:8px;line-height:1.5">${esc(item.desc||'')}</span>
+
+        <div class="table-actions" onclick="event.stopPropagation()">
+
+          <button class="btn-ghost btn-sm" onclick="openEditModal('${item.id}')" title="编辑">
+
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+
+          </button>
+
+          <button class="btn-ghost btn-sm" onclick="confirmDelete('${item.id}')" title="删除">
+
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>`;
+
+}
+
+// ============ 表格渲染 ============
+
+function renderTable(data) {
+
+  return `
+
+    <div class="table-wrap">
+
+      <table>
+
+        <thead>
+
+          <tr>
+
+            <th>编号</th><th>展项名称</th><th>部门类型</th><th>归属部门</th>
+
+            <th>类别</th><th>状态</th><th>上线日期</th><th>最后更新</th>
+
+            <th>距今天数</th><th>更新状态</th><th>负责人</th><th>位置</th><th>内容介绍</th><th>操作</th>
+
+          </tr>
+
+        </thead>
+
+        <tbody>
+
+          ${data.map(item => {
+
+            const us = getUpdateStatus(item);
+
+            const days = daysSince(item.updateDate);
+
+            return `<tr onclick="openDetail('${item.id}')" style="cursor:pointer">
+
+              <td>${esc(item.id)}</td>
+
+              <td><strong>${esc(item.name)}</strong></td>
+
+              <td>${esc(item.deptType||'')}</td>
+
+              <td>${esc(item.dept||'')}</td>
+
+              <td>${esc(item.category||'')}</td>
+
+              <td>${getStatusTag(item.status)}</td>
+
+              <td>${esc(item.onlineDate||'')}</td>
+
+              <td>${esc(item.updateDate||'')}</td>
+
+              <td style="text-align:center">${days!==null?days:'-'}</td>
+
+              <td><span class="tag ${us.class}">${us.text}</span></td>
+
+              <td>${esc(item.owner||'')}</td>
+
+              <td>${esc(item.location||'')}</td>
+
+              <td style="max-width:350px;white-space:normal;word-break:break-all;line-height:1.5">${esc(item.desc||'')}</td>
+
+              <td>
+
+                <div class="table-actions" onclick="event.stopPropagation()">
+
+                  <button class="btn-ghost btn-sm" onclick="openEditModal('${item.id}')" title="编辑">
+
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+
+                  </button>
+
+                  <button class="btn-ghost btn-sm" onclick="confirmDelete('${item.id}')" title="删除">
+
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+
+                  </button>
+
+                </div>
+
+              </td>
+
+            </tr>`;
+
+          }).join('')}
+
+        </tbody>
+
+      </table>
+
+    </div>`;
+
+}
+
+// ============ 统计页面 ============
+
+function renderStatsPage() {
+
+  const content = document.getElementById('content');
+
+  const total = appData.length;
+
+  const byStatus = {};
+
+  const byDeptType = {};
+
+  const byDept = {};
+
+  const byCategory = {};
+
+  const warningItems = [];
+
+  appData.forEach(item => {
+
+    byStatus[item.status] = (byStatus[item.status]||0) + 1;
+
+    byDeptType[item.deptType] = (byDeptType[item.deptType]||0) + 1;
+
+    byDept[item.dept] = (byDept[item.dept]||0) + 1;
+
+    byCategory[item.category] = (byCategory[item.category]||0) + 1;
+
+    const us = getUpdateStatus(item);
+
+    if (us.text === '超期预警') warningItems.push(item);
+
+  });
+
+  const maxDept = Math.max(...Object.values(byDept), 1);
+
+  const maxStatus = Math.max(...Object.values(byStatus), 1);
+
+  const maxCat = Math.max(...Object.values(byCategory), 1);
+
+  let html = '';
+
+  // Summary cards
+
+  html += `<div class="stats-row" style="grid-template-columns:repeat(4,1fr)">
+
+    <div class="stat-card"><div class="stat-label">展项总数</div><div class="stat-value">${total}</div></div>
+
+    <div class="stat-card"><div class="stat-label">在线运行</div><div class="stat-value" style="color:var(--green)">${byStatus['在线']||0}</div></div>
+
+    <div class="stat-card warning"><div class="stat-label">超期预警</div><div class="stat-value">${warningItems.length}</div></div>
+
+    <div class="stat-card"><div class="stat-label">下线</div><div class="stat-value" style="color:var(--red)">${byStatus['下线']||0}</div></div>
+
+  </div>`;
+
+  // 图表区域
+
+  html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">`;
+
+  // 按状态分布
+
+  html += `<div style="background:#fff;border-radius:10px;padding:20px;box-shadow:var(--shadow)">
+
+    <h3 style="font-size:15px;font-weight:700;margin-bottom:16px">按展项状态分布</h3>
+
+    ${Object.entries(byStatus).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`
+
+      <div style="margin-bottom:12px">
+
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:13px">
+
+          <span>${k}</span><span style="font-weight:700">${v}</span>
+
+        </div>
+
+        <div style="background:var(--gray-100);border-radius:4px;height:8px;overflow:hidden">
+
+          <div style="width:${(v/maxStatus*100)}%;height:100%;background:${k==='在线'?'var(--green)':k==='下线'?'var(--gray-400)':'var(--blue)'};border-radius:4px;transition:width .3s"></div>
+
+        </div>
+
+      </div>`).join('')}
+
+  </div>`;
+
+  // 按部门分布
+
+  html += `<div style="background:#fff;border-radius:10px;padding:20px;box-shadow:var(--shadow)">
+
+    <h3 style="font-size:15px;font-weight:700;margin-bottom:16px">按归属部门分布（Top 10）</h3>
+
+    ${Object.entries(byDept).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([k,v])=>`
+
+      <div style="margin-bottom:12px">
+
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:13px">
+
+          <span>${esc(k)}</span><span style="font-weight:700">${v}</span>
+
+        </div>
+
+        <div style="background:var(--gray-100);border-radius:4px;height:8px;overflow:hidden">
+
+          <div style="width:${(v/maxDept*100)}%;height:100%;background:var(--primary);border-radius:4px;transition:width .3s"></div>
+
+        </div>
+
+      </div>`).join('')}
+
+  </div>`;
+
+  // 按类别分布
+
+  html += `<div style="background:#fff;border-radius:10px;padding:20px;box-shadow:var(--shadow)">
+
+    <h3 style="font-size:15px;font-weight:700;margin-bottom:16px">按展项类别分布</h3>
+
+    ${Object.entries(byCategory).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`
+
+      <div style="margin-bottom:12px">
+
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:13px">
+
+          <span>${k}</span><span style="font-weight:700">${v}</span>
+
+        </div>
+
+        <div style="background:var(--gray-100);border-radius:4px;height:8px;overflow:hidden">
+
+          <div style="width:${(v/maxCat*100)}%;height:100%;background:var(--blue);border-radius:4px;transition:width .3s"></div>
+
+        </div>
+
+      </div>`).join('')}
+
+  </div>`;
+
+  // 部门类型对比
+
+  html += `<div style="background:#fff;border-radius:10px;padding:20px;box-shadow:var(--shadow)">
+
+    <h3 style="font-size:15px;font-weight:700;margin-bottom:16px">部门类型对比</h3>
+
+    ${Object.entries(byDeptType).map(([k,v])=>`
+
+      <div style="margin-bottom:12px">
+
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:13px">
+
+          <span>${k}</span><span style="font-weight:700">${v}</span>
+
+        </div>
+
+        <div style="background:var(--gray-100);border-radius:4px;height:8px;overflow:hidden">
+
+          <div style="width:${(v/Math.max(Object.values(byDeptType)))*100}%;height:100%;background:${k==='能力部门'?'var(--primary)':'var(--green)'};border-radius:4px;transition:width .3s"></div>
+
+        </div>
+
+      </div>`).join('')}
+
+  </div>`;
+
+  html += `</div>`;
+
+  // 超期预警列表
+
+  if (warningItems.length > 0) {
+
+    html += `<div style="background:#fff;border-radius:10px;padding:20px;box-shadow:var(--shadow)">
+
+      <h3 style="font-size:15px;font-weight:700;margin-bottom:16px;color:var(--red)">超期预警展项（${warningItems.length}个）</h3>
+
+      <div class="table-wrap" style="box-shadow:none">
+
+        <table>
+
+          <thead><tr><th>编号</th><th>展项名称</th><th>归属部门</th><th>最后更新</th><th>距今天数</th><th>负责人</th></tr></thead>
+
+          <tbody>
+
+            ${warningItems.map(item=>{
+
+              const d = daysSince(item.updateDate);
+
+              return `<tr style="cursor:pointer" onclick="openDetail('${item.id}')">
+
+                <td>${esc(item.id)}</td><td><strong>${esc(item.name)}</strong></td>
+
+                <td>${esc(item.dept||'')}</td><td>${esc(item.updateDate||'')}</td>
+
+                <td style="text-align:center;color:var(--red);font-weight:700">${d}</td>
+
+                <td>${esc(item.owner||'')}</td>
+
+              </tr>`;
+
+            }).join('')}
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </div>`;
+
+  }
+
+  content.innerHTML = html;
+
+}
+
+// ============ 筛选操作 ============
+
+function onFilterChange(type, val) {
+
+  switch(type) {
+
+    case 'status': filterStatus = val; break;
+
+    case 'deptType': filterDeptType = val; filterDept = ''; break;
+
+    case 'dept': filterDept = val; break;
+
+    case 'category': filterCategory = val; break;
+
+    case 'keyword': filterKeyword = val; break;
+
+  }
+
+  render();
+
+}
+
+function switchView(view) {
+
+  currentView = view;
+
+  render();
+
+}
+
+function toggleStatFilter(key) {
+
+  if (key === 'total') { statFilter = ''; } else { statFilter = statFilter === key ? '' : key; }
+
+  render();
+
+}
+
+// ============ 新增/编辑 ============
+
+function genIdIfEmpty() {
+
+  const idField = document.getElementById('f_id');
+
+  if (!idField.value && !document.getElementById('editId').value) {
+
+    const maxNum = appData.reduce((max, item) => {
+
+      const m = (item.id||'').match(/(\d+)$/);
+
+      return m ? Math.max(max, parseInt(m[1])) : max;
+
+    }, 0);
+
+    idField.value = 'ZXD' + String(maxNum + 1).padStart(3, '0');
+
+  }
+
+}
+
+// 部门类型联动：根据类型填充归属部门下拉选项
+
+const DEPT_OPTIONS = {
+
+  '能力部门': ['云省分公司','AI与大数据中心','产品运营中心','云网运营中心','数智省分公司'],
+
+  '行业部门': ['工业BU','交通住建BU','教育BU','金融BU','农业文旅BU','汽车BU','商客BU','数字政府BU','卫健BU','政法应急BU']
+
+};
+
+function onDeptTypeChange() {
+
+  const dt = document.getElementById('f_depttype').value;
+
+  const sel = document.getElementById('f_dept');
+
+  const options = DEPT_OPTIONS[dt] || [];
+
+  sel.innerHTML = '<option value="">请选择归属部门</option>' + options.map(d => `<option value="${d}">${d}</option>`).join('');
+
+}
+
+// 编辑时回填已选值
+
+function onDeptTypeChangeWithValue(val) {
+
+  onDeptTypeChange();
+
+  if (val) document.getElementById('f_dept').value = val;
+
+}
+
+function openAddModal() {
+
+  document.getElementById('editId').value = '';
+
+  document.getElementById('modalTitle').textContent = '新增展项';
+
+  // 清空表单
+
+  ['f_id','f_name','f_location','f_owner','f_contact','f_tech_contact','f_desc','f_remark'].forEach(id => {
+
+    document.getElementById(id).value = '';
+
+  });
+
+  // 默认值
+
+  document.getElementById('f_depttype').value = '能力部门';
+
+  document.getElementById('f_category').value = '互动体验';
+
+  document.getElementById('f_status').value = '在线';
+
+  onDeptTypeChange();
+
+  const today = new Date().toISOString().slice(0,10);
+
+  document.getElementById('f_online_date').value = today;
+
+  document.getElementById('f_update_date').value = today;
+
+  // 自动生成编号
+
+  genIdIfEmpty();
+
+  document.getElementById('editModal').classList.add('show');
+
+  document.getElementById('f_name').focus();
+
+}
+
+function openEditModal(id) {
+
+  const item = appData.find(i => i.id === id);
+
+  if (!item) return showToast('未找到展项', 'error');
+
+  document.getElementById('editId').value = item.id;
+
+  document.getElementById('modalTitle').textContent = '编辑展项 — ' + item.name;
+
+  document.getElementById('f_id').value = item.id;
+
+  document.getElementById('f_id').classList.add('form-readonly');
+
+  document.getElementById('f_id').readOnly = true;
+
+  document.getElementById('f_name').value = item.name || '';
+
+  document.getElementById('f_depttype').value = item.deptType || '能力部门';
+
+  onDeptTypeChangeWithValue(item.dept || '');
+
+  document.getElementById('f_category').value = item.category || '互动体验';
+
+  document.getElementById('f_status').value = item.status || '在线';
+
+  document.getElementById('f_online_date').value = item.onlineDate || '';
+
+  document.getElementById('f_update_date').value = item.updateDate || '';
+
+  document.getElementById('f_location').value = item.location || '';
+
+  document.getElementById('f_owner').value = item.owner || '';
+
+  document.getElementById('f_contact').value = item.contact || '';
+
+  document.getElementById('f_tech_contact').value = item.techContact || '';
+
+  document.getElementById('f_desc').value = item.desc || '';
+
+  document.getElementById('f_remark').value = item.remark || '';
+
+  onDeptTypeChange();
+
+  document.getElementById('editModal').classList.add('show');
+
+}
+
+function closeModal() {
+
+  document.getElementById('editModal').classList.remove('show');
+
+  document.getElementById('f_id').readOnly = false;
+
+  document.getElementById('f_id').classList.remove('form-readonly');
+
+}
+
+function saveExhibit() {
+
+  const editId = document.getElementById('editId').value;
+
+  const id = document.getElementById('f_id').value.trim();
+
+  const name = document.getElementById('f_name').value.trim();
+
+  if (!id) return showToast('请填写展项编号', 'error');
+
+  if (!name) return showToast('请填写展项名称', 'error');
+
+  // 编号唯一性检查
+
+  const exists = appData.find(i => i.id === id && i.id !== editId);
+
+  if (exists) return showToast('展项编号已存在，请使用其他编号', 'error');
+
+  const data = {
+
+    id: id,
+
+    name: name,
+
+    deptType: document.getElementById('f_depttype').value,
+
+    dept: document.getElementById('f_dept').value.trim(),
+
+    category: document.getElementById('f_category').value,
+
+    status: document.getElementById('f_status').value,
+
+    onlineDate: document.getElementById('f_online_date').value,
+
+    updateDate: document.getElementById('f_update_date').value,
+
+    location: document.getElementById('f_location').value.trim(),
+
+    owner: document.getElementById('f_owner').value.trim(),
+
+    contact: document.getElementById('f_contact').value.trim(),
+
+    techContact: document.getElementById('f_tech_contact').value.trim(),
+
+    desc: document.getElementById('f_desc').value.trim(),
+
+    remark: document.getElementById('f_remark').value.trim(),
+
+  };
+
+  if (editId) {
+
+    // 编辑
+
+    const idx = appData.findIndex(i => i.id === editId);
+
+    if (idx > -1) { appData[idx] = data; }
+
+    showToast('展项已更新', 'success');
+
+  } else {
+
+    // 新增
+
+    appData.push(data);
+
+    showToast('展项已新增', 'success');
+
+  }
+
+  saveData();
+
+  closeModal();
+
+  render();
+
+}
+
+// ============ 详情 ============
+
+function openDetail(id) {
+
+  const item = appData.find(i => i.id === id);
+
+  if (!item) return;
+
+  const us = getUpdateStatus(item);
+
+  const days = daysSince(item.updateDate);
+
+  document.getElementById('detailTitle').textContent = item.name + ' — 详情';
+
+  document.getElementById('detailBody').innerHTML = `
+
+    <div style="margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap">
+
+      ${getStatusTag(item.status)}
+
+      <span class="tag ${us.class}">${us.text}</span>
+
+      <span class="tag tag-blue">${esc(item.category||'')}</span>
+
+      <span class="tag tag-gray">${esc(item.deptType||'')}</span>
+
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px 24px">
+
+      ${detailRow('展项编号', item.id)}
+
+      ${detailRow('展项名称', item.name)}
+
+      ${detailRow('归属部门类型', item.deptType)}
+
+      ${detailRow('归属部门', item.dept)}
+
+      ${detailRow('展项类别', item.category)}
+
+      ${detailRow('展项状态', item.status)}
+
+      ${detailRow('上线日期', item.onlineDate)}
+
+      ${detailRow('最后更新日期', item.updateDate)}
+
+      ${detailRow('距今天数', days!==null?days+'天':'-', days!==null&&days>90?'color:var(--red);font-weight:700':'')}
+
+      ${detailRow('更新状态', us.text)}
+
+      ${detailRow('展项位置', item.location)}
+
+      ${detailRow('负责人', item.owner)}
+
+      ${detailRow('联系方式', item.contact)}
+
+      ${detailRow('技术联系人', item.techContact)}
+
+    </div>
+
+    <div style="margin-top:16px">
+
+      <div style="font-size:13px;font-weight:600;color:var(--gray-600);margin-bottom:6px">内容介绍</div>
+
+      <div style="font-size:14px;color:var(--gray-700);padding:12px;background:var(--gray-50);border-radius:8px;white-space:pre-wrap;word-break:break-word;line-height:1.6">${esc(item.desc||'无')}</div>
+
+    </div>
+
+    <div style="margin-top:12px">
+
+      <div style="font-size:13px;font-weight:600;color:var(--gray-600);margin-bottom:6px">备注</div>
+
+      <div style="font-size:14px;color:var(--gray-700);padding:12px;background:var(--gray-50);border-radius:8px">${esc(item.remark||'无')}</div>
+
+    </div>
+
+  `;
+
+  document.getElementById('detailModal').classList.add('show');
+
+}
+
+function detailRow(label, value, style='') {
+
+  return `<div>
+
+    <div style="font-size:12px;color:var(--gray-500);margin-bottom:2px">${label}</div>
+
+    <div style="font-size:14px;color:var(--gray-800);font-weight:500;${style}">${esc(value||'-')}</div>
+
+  </div>`;
+
+}
+
+function closeDetail() {
+  document.getElementById('detailModal').classList.remove('show');
+  const eb = document.getElementById('detailEditBtn');
+  if (eb) { eb.style.display = ''; eb.onclick = editFromDetail; }
+}
+
+function editFromDetail() {
+
+  const editId = document.getElementById('editId') || {value:''};
+
+  // 从详情获取ID
+
+  const title = document.getElementById('detailTitle').textContent;
+
+  closeDetail();
+
+  // 从appData找到对应的item
+
+  const item = appData.find(i => (i.name + ' — 详情') === title);
+
+  if (item) openEditModal(item.id);
+
+}
+
+// ============ 删除 ============
+
+function confirmDelete(id) {
+
+  const item = appData.find(i => i.id === id);
+
+  if (!item) return;
+
+  document.getElementById('confirmMsg').textContent = `确定要删除「${item.name}」（${item.id}）吗？此操作不可撤销。`;
+
+  document.getElementById('confirmOverlay').classList.add('show');
+
+  document.getElementById('confirmOkBtn').onclick = () => {
+
+    appData = appData.filter(i => i.id !== id);
+
+    saveData();
+
+    closeConfirm();
+
+    showToast('展项已删除', 'success');
+
+    render();
+
+  };
+
+}
+
+function closeConfirm() {
+
+  document.getElementById('confirmOverlay').classList.remove('show');
+
+}
+
+// ============================================================
+// ============ 展项数据模块 ============
+// ============================================================
+
+// 展项数据（附件4-数据更新汇总）
+const SAMPLE_EXHIBIT_DATA = [
+  {
+    "name": "序厅-建设一流企业",
+    "dept": "市场部",
+    "updateTime": "2026年8月10日已更新",
+    "dataItems": [
+      "企业规模总资产480亿，今年年收入超295亿",
+      "4500万用户",
+      "移动用户超2200万",
+      "宽带用户1500万",
+      "ITV用户超1000万",
+      "视联网用户超百万"
+    ]
+  },
+  {
+    "name": "序厅-筑牢数字底座",
+    "dept": "各能力部门",
+    "updateTime": "2026年8月10日已更新",
+    "dataItems": [
+      "物联网14万基站",
+      "全省“2+16+X”数据中心布局，支持算力2.2EFLOPS",
+      "2大省级核心园区",
+      "16个地市标杆数据中心",
+      "104个区县边缘节点",
+      "全省机架超3万架",
+      "全省监控终端600万+",
+      "AI并发日均2.4亿次",
+      "云储存数据48PB"
+    ]
+  },
+  {
+    "name": "序厅-赋能数字发展",
+    "dept": "各行业BU、\n各能力部门",
+    "updateTime": "2026年8月10日已更新",
+    "dataItems": [
+      "城市覆盖率90%",
+      "省内应急指挥中心12个地方44个区县级应急指程中心，全省市场份额80%",
+      "省内16个地市工业大脑",
+      "3万家中小企业上云",
+      "承建88个智慧园区",
+      "3000个数字工厂",
+      "30万户数字家庭",
+      "3800个智慧社区",
+      "12个市县级城市大脑",
+      "数字乡村覆盖全省800余个乡镇"
+    ]
+  },
+  {
+    "name": "网能力-移动网",
+    "dept": "产品运营中心",
+    "updateTime": "2026年8月10日已更新",
+    "dataItems": [
+      "8.4万基站",
+      "2200万用户",
+      "300+行业专网",
+      "600+应用场景"
+    ]
+  },
+  {
+    "name": "网能力-宽带网",
+    "dept": "云网运营中心",
+    "updateTime": "2026年8月10日已更新",
+    "dataItems": [
+      "安徽省数据：1500万家庭宽带、1000万ITV、600+万视联网",
+      "全省16个地市带宽达140T，全省出省带宽近36T"
+    ]
+  },
+  {
+    "name": "网能力-卫星网",
+    "dept": "产品运营中心",
+    "updateTime": "2026年8月10日已更新",
+    "dataItems": [
+      "3颗卫星组成，01号卫星覆盖中国全境及周边海域，02号卫星覆盖西太平洋，03号卫星覆盖东南亚17个国家",
+      "800万+/承载用户",
+      "500MB/数据带宽",
+      "15000路/语音并发"
+    ]
+  },
+  {
+    "name": "网能力-物联网",
+    "dept": "产品运营中心",
+    "updateTime": "2026年8月10日已更新",
+    "dataItems": [
+      "中国电信物联网连接总数8.06亿户",
+      "NB用户数超3.8亿，安徽用户规模3000万",
+      "物联网设备管理总量2.2亿",
+      "终端适配类型1900+",
+      "4G网络高中低黄金频段全覆盖800MHz+1.8GHz+2.1GHz"
+    ]
+  },
+  {
+    "name": "网能力-视联网",
+    "dept": "AI与大数据中心",
+    "updateTime": "2026年8月10日已更新",
+    "dataItems": [
+      "安徽监控数600万+",
+      "日均调用AI算法2.4亿次+",
+      "云存储容量37PB+",
+      "全省拉动标品21.3万",
+      "全市公共视频收编5万+",
+      "市监局监管5万+，校外供餐96家",
+      "“明厨亮灶”发展1664路",
+      "繁昌平安校园发展3000路",
+      "宣城区平安校园发展1854路",
+      "凯旋公馆电动车进电梯发展3000路",
+      "镇北小区高空抛物发展84路"
+    ]
+  },
+  {
+    "name": "天翼云",
+    "dept": "云省分",
+    "updateTime": "2026年8月10日已更新",
+    "dataItems": [
+      "全国算力：形成了4+4+31+ X + O的算力布局",
+      "31个省份建立省级中心",
+      "9个海外公有云节点，30个海外边缘云节点。",
+      "280+地市节点覆盖   3000+边缘DC一体机快速交付",
+      "省内：2+16+x 算力布局",
+      "南岗：1.6万机架、PUE低于1.25",
+      "芜湖：规划10万机架、2+3+7 智算节点",
+      "16个地市算力基础设施、104个边缘节点",
+      "公有云：服务2万用户、30万核云主机、1000P智算",
+      "政务云：1省、16市、55区县",
+      "国资云：服务100+国资企业、能力3万核、4大类27个云服务",
+      "私有云：服务300家客户 ，支持3-1000节点",
+      "云电脑：教育 ：岳西5000台、望江4300台",
+      "医疗：阜阳医共体590台、砀山卫生院260台",
+      "医院：肥西医院500台、阜阳二院100台",
+      "政府：宿州75台、阜阳55台",
+      "基层公安：舒城450台、阜阳200台",
+      "驾考中心：怀远120台、湾沚50台",
+      "xc替代：江淮汽车170台",
+      "金融：大地财险1400台、浦发银行600台"
+    ]
+  },
+  {
+    "name": "量子",
+    "dept": "产品运营中心",
+    "updateTime": "2026年8月10日已更新",
+    "dataItems": [
+      "量子产业布局",
+      "连续举办5届全国量子产业大会",
+      "量子安全通话用户规模超600万",
+      "量子安全办公服务2万+客户",
+      "量子安全平台服务10万用户",
+      "制定5项参与14项国家及行业标准",
+      "云服务密码机等15+项成果，牵头3项课题、13项关键技术",
+      "量子密信密话",
+      "政务办公：宿州民政局",
+      "执法办案：马鞍山公安警务通终端、合肥海关",
+      "部队安全通信：安徽省JQ、河北民兵",
+      "科研院校：中国航空技术研究院、成都电子研究所",
+      "伊利集团、安庆某企业"
+    ]
+  },
+  {
+    "name": "安全",
+    "dept": "产品运营中心",
+    "updateTime": "2026年8月10日已更新",
+    "dataItems": [
+      "讲解词：",
+      "安全大脑：省内“天翼安全大脑”已累计部署6.5万端，服务5万+ 政企客户",
+      "云堤抗D：在全球部署60余个防护节点",
+      "整体防护能力超16Tbps",
+      "市场份额稳居行业第一",
+      "为 2 万家客户提供安全保障"
+    ]
+  },
+  {
+    "name": "云总机",
+    "dept": "数智",
+    "updateTime": "2026年8月10日已更新",
+    "dataItems": [
+      "暂无"
+    ]
+  },
+  {
+    "name": "数智中台",
+    "dept": "数智",
+    "updateTime": "2026年8月10日已更新",
+    "dataItems": [
+      "世界领先的视联网：超100+场景，覆盖全国31省，用户超1亿，连接终端8000万，AI日调用18亿次",
+      "星辰大模型：超20家央企使用",
+      "行业平台：集团级成果311项",
+      "视觉A应用场景算法 300+ 行业客例50+全国产化万亿参数大根型自主掌控8大行业大模型",
+      "服务热线接入坐席300+，工单处理数60000+",
+      "和美乡村服务乡镇超1100个，服务村民超7万人次\n（更名：智绘乡村）",
+      "一网统管覆盖职能部门100+受理民生诉求140000+",
+      "两个大脑覆盖省内16个地市",
+      "三类园区累计签约90+",
+      "数字工厂，工厂项目200+设备接45000+（更名：智慧工厂）",
+      "量子云总机推广客户4100+覆盖用户120000+\n改名：AI量子云总机 推广客户4100+覆盖用户120000+",
+      "统一运维接入客户170+纳管资产30000+\n\n改名：AI智能运维 接入客户170+纳管资产30000+",
+      "行业场景",
+      "智慧水利场景20+设备1000+",
+      "智慧社区 社区/街道200+，小区10000+\n\n更名：翼云社区 社区/街道200+，小区10000+",
+      "智慧物业小区17000+居民70000+",
+      "心理健康 学校2500+，累计用户150+万\n更名：智心护航 学校2500+，累计用户150+万",
+      "慢病管理500+医疗机构患者300万人",
+      "全域旅游平台（含文旅一机游）累计签约金额突破3000万元，旅游人次超100万\n（更名：全域智游）",
+      "大模型8类20余种大模型能力，获取专利22项，软著150+",
+      "国家级试点2个 产学研大数据实验室3个超大数据集群 600+节点 泛政务/工业语料库双千亿",
+      "典型案例和客户",
+      "安徽数据交易所数商入驻100+家、数据产权评估25家，发放全省数据券超1000万",
+      "12333咨询服务信息系统平台接入坐席300+、处理全省人社咨询工单6万+",
+      "省市研发队伍",
+      "安徽公司研发队伍1293人。研发队伍1293人首席专家3人专家队伍681人高级专家48人",
+      "省市县三级覆盖 省级29%",
+      "研发队伍90后占比60%",
+      "本科及以上97%研究生32%",
+      "19家创新工作室。",
+      "翼起开发创新工作室近三年拉动收入超2亿，专利15项，软著150+",
+      "叶晖劳模创新工作室发明专利5项",
+      "人工智能工匠学院人才队伍15人专利5项、论文8篇",
+      "大数据/AI賦能创新工作室技术人才18人、奖项20+，创新成果十余项，专利12项 软著15项，核心论文12篇",
+      "石明劳模工匠创新工作室合理化建议1项专利8项"
+    ]
+  },
+  {
+    "name": "大数据",
+    "dept": "AI与大数据中心",
+    "updateTime": "2026年8月10日已更新",
+    "dataItems": [
+      "落地大数据相关项目超40个",
+      "拥有30人专业团队",
+      "3大驱动因素、1套规范体系、5大核心环节、6项交付成果"
+    ]
+  },
+  {
+    "name": "AI+",
+    "dept": "AI与大数据中心",
+    "updateTime": "2026年8月10日已更新",
+    "dataItems": [
+      "单个包裹体积测量准确率达95%以上，",
+      "通过对车辆装载率达到70%以上才能发车",
+      "智慧派出所：治安盗窃案件破案率提升50%。",
+      "覆盖全省1288个派出所",
+      "接入视频资源47.6万路",
+      "智慧劝导员：违法量下降32.26%、产品已在19个区县正式落地应"
+    ]
+  }
+];
+
+let exhibitFilterDept = '';   // 数据提供部门筛选
+let exhibitKeyword = '';      // 关键词搜索
+let exhibitEditName = '';     // 编辑中的展项数据名称
+
+function renderExhibitDataPage() {
+  const content = document.getElementById('content');
+  let data = [...exhibitData];
+  if (exhibitFilterDept) data = data.filter(i => i.dept === exhibitFilterDept);
+  if (exhibitKeyword) {
+    const kw = exhibitKeyword.toLowerCase();
+    data = data.filter(i =>
+      (i.name||'').toLowerCase().includes(kw) ||
+      (i.dept||'').toLowerCase().includes(kw) ||
+      (i.dataItems||[]).some(d => String(d).toLowerCase().includes(kw))
+    );
+  }
+
+  // 统计
+  const total = exhibitData.length;
+  const totalItems = exhibitData.reduce((s,i) => s + (i.dataItems||[]).length, 0);
+  const deptSet = [...new Set(exhibitData.map(i => i.dept).filter(Boolean))].sort();
+  const lastUpdate = exhibitData[0] ? exhibitData[0].updateTime : '';
+
+  let html = '';
+  // 统计卡片
+  html += `<div class="stats-row" style="grid-template-columns:repeat(4,1fr)">
+    <div class="stat-card active"><div class="stat-label">展项数</div><div class="stat-value">${total}</div></div>
+    <div class="stat-card"><div class="stat-label">涉及数据条数</div><div class="stat-value" style="color:var(--blue)">${totalItems}</div></div>
+    <div class="stat-card"><div class="stat-label">数据提供部门</div><div class="stat-value" style="color:var(--green)">${deptSet.length}</div></div>
+    <div class="stat-card"><div class="stat-label">最近更新</div><div class="stat-value" style="color:var(--orange);font-size:13px">${esc(lastUpdate)}</div></div>
+  </div>`;
+
+  // 筛选栏
+  html += `<div class="filter-bar">
+    <div class="filter-group">
+      <span class="filter-label">数据提供部门</span>
+      <select class="filter-select" onchange="setExhibitFilter('dept', this.value)">
+        <option value="">全部</option>
+        ${deptSet.map(d => `<option value="${esc(d)}" ${exhibitFilterDept===d?'selected':''}>${esc(d)}</option>`).join('')}
+      </select>
+    </div>
+    <div class="filter-group">
+      <input type="text" class="filter-input" placeholder="搜索展项名称/数据内容..." value="${esc(exhibitKeyword)}" oninput="setExhibitFilter('kw', this.value)">
+    </div>
+  </div>`;
+
+  if (data.length === 0) {
+    html += emptyState('暂无展项数据');
+  } else {
+    html += '<div class="card-grid">';
+    data.forEach(item => {
+      const items = item.dataItems || [];
+      const preview = items.slice(0, 3).map(d => `<div class="ed-item">${esc(d)}</div>`).join('');
+      const more = items.length > 3 ? `<div class="ed-more">… 共 ${items.length} 条数据，点击查看全部</div>` : '';
+      html += `
+      <div class="exhibit-card" style="cursor:pointer" onclick="openExhibitDataDetail('${esc(item.name)}')">
+        <div class="card-header">
+          <div class="card-title-row">
+            <div class="card-title">${esc(item.name)}</div>
+          </div>
+          <div class="card-tags">
+            <span class="tag tag-blue">${esc(item.dept||'')}</span>
+            <span class="tag tag-gray">${items.length} 条</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-row"><span class="label">更新时间</span><span class="value">${esc(item.updateTime||'')}</span></div>
+          <div style="margin-top:8px">
+            ${preview}
+            ${more}
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="table-actions" onclick="event.stopPropagation()">
+            <button class="btn-ghost btn-sm" onclick="openEditExhibitDataModal('${esc(item.name)}')" title="编辑">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            <button class="btn-ghost btn-sm" onclick="confirmDeleteExhibitData('${esc(item.name)}')" title="删除">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+  }
+  content.innerHTML = html;
+}
+
+function setExhibitFilter(type, val) {
+  if (type === 'dept') exhibitFilterDept = val;
+  else if (type === 'kw') exhibitKeyword = val;
+  render();
+}
+
+function openExhibitDataDetail(name) {
+  const item = exhibitData.find(i => i.name === name);
+  if (!item) return;
+  const items = item.dataItems || [];
+  document.getElementById('detailTitle').textContent = item.name + ' — 展项数据详情';
+  document.getElementById('detailBody').innerHTML = `
+    <div style="margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap">
+      <span class="tag tag-blue">${esc(item.dept||'')}</span>
+      <span class="tag tag-gray">${items.length} 条数据</span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px 24px">
+      ${detailRow('展项名称', item.name)}
+      ${detailRow('数据提供部门', item.dept)}
+      ${detailRow('更新时间', item.updateTime)}
+    </div>
+    <div style="margin-top:16px">
+      <div style="font-size:13px;font-weight:600;color:var(--gray-600);margin-bottom:6px">涉及数据</div>
+      <div style="font-size:14px;color:var(--gray-700);padding:12px;background:var(--gray-50);border-radius:8px;max-height:55vh;overflow-y:auto">
+        ${items.length ? items.map((d,i) => `<div style="padding:7px 0;border-bottom:1px dashed var(--gray-200);line-height:1.6;white-space:pre-wrap;word-break:break-word"><span style="color:var(--gray-400);margin-right:6px">${i+1}.</span>${esc(d)}</div>`).join('') : '<div style="color:var(--gray-400)">暂无数据</div>'}
+      </div>
+    </div>
+  `;
+  const eb = document.getElementById('detailEditBtn');
+  if (eb) eb.onclick = () => { closeDetail(); openEditExhibitDataModal(item.name); };
+  document.getElementById('detailModal').classList.add('show');
+}
+
+function openAddExhibitDataModal() {
+  exhibitEditName = '';
+  document.getElementById('ed_name').value = '';
+  document.getElementById('ed_dept').value = '';
+  document.getElementById('ed_time').value = '2026年8月10日已更新';
+  document.getElementById('ed_items').value = '';
+  document.getElementById('exhibitDataModalTitle').textContent = '新增展项数据';
+  document.getElementById('exhibitDataModal').classList.add('show');
+}
+
+function openEditExhibitDataModal(name) {
+  const item = exhibitData.find(i => i.name === name);
+  if (!item) return showToast('未找到展项数据', 'error');
+  exhibitEditName = item.name;
+  document.getElementById('ed_name').value = item.name || '';
+  document.getElementById('ed_dept').value = item.dept || '';
+  document.getElementById('ed_time').value = item.updateTime || '';
+  document.getElementById('ed_items').value = (item.dataItems||[]).join('\n');
+  document.getElementById('exhibitDataModalTitle').textContent = '编辑展项数据 — ' + item.name;
+  document.getElementById('exhibitDataModal').classList.add('show');
+}
+
+function closeExhibitDataModal() {
+  document.getElementById('exhibitDataModal').classList.remove('show');
+}
+
+function saveExhibitDataItem() {
+  const name = document.getElementById('ed_name').value.trim();
+  const dept = document.getElementById('ed_dept').value.trim();
+  const time = document.getElementById('ed_time').value.trim();
+  const items = document.getElementById('ed_items').value.split('\n').map(s => s.trim()).filter(Boolean);
+  if (!name) return showToast('请填写展项名称', 'error');
+  if (!dept) return showToast('请填写数据提供部门', 'error');
+
+  if (exhibitEditName) {
+    const idx = exhibitData.findIndex(i => i.name === exhibitEditName);
+    if (idx > -1) exhibitData[idx] = { name, dept, updateTime: time, dataItems: items };
+    showToast('展项数据已更新', 'success');
+  } else {
+    exhibitData.push({ name, dept, updateTime: time, dataItems: items });
+    showToast('展项数据已新增', 'success');
+  }
+  saveExhibitData();
+  closeExhibitDataModal();
+  render();
+}
+
+function confirmDeleteExhibitData(name) {
+  const item = exhibitData.find(i => i.name === name);
+  if (!item) return;
+  document.getElementById('confirmTitle').textContent = '删除展项数据';
+  document.getElementById('confirmMsg').textContent = `确定要删除「${item.name}」的展项数据吗？`;
+  document.getElementById('confirmOverlay').classList.add('show');
+  document.getElementById('confirmOkBtn').textContent = '确认删除';
+  document.getElementById('confirmOkBtn').onclick = () => {
+    exhibitData = exhibitData.filter(i => i.name !== name);
+    saveExhibitData();
+    closeConfirm();
+    document.getElementById('confirmOkBtn').textContent = '确认删除';
+    showToast('展项数据已删除', 'success');
+    render();
+  };
+}
+
+// ============================================================
+
+// ============================================================
+
+// ============ 更新记录模块 ============
+
+// ============================================================
+
+function genUpdateId() {
+
+  const maxNum = updateData.reduce((max, item) => {
+
+    const m = (item.id||'').match(/(\d+)$/);
+
+    return m ? Math.max(max, parseInt(m[1])) : max;
+
+  }, 0);
+
+  return 'JL' + String(maxNum + 1).padStart(3, '0');
+
+}
+
+function renderUpdatePage() {
+
+  const content = document.getElementById('content');
+
+  let data = [...updateData];
+
+  // 倒序展示（最新在前）
+
+  data.sort((a,b) => (b.planDate||'').localeCompare(a.planDate||''));
+
+  if (updateFilter) data = data.filter(i => i.status === updateFilter);
+
+  const total = updateData.length;
+
+  const done = updateData.filter(i => i.status === '已完成').length;
+
+  const ongoing = updateData.filter(i => i.status === '进行中').length;
+
+  const pending = updateData.filter(i => i.status === '待启动').length;
+
+  let html = '';
+
+  // 统计卡片
+
+  html += `<div class="stats-row" style="grid-template-columns:repeat(4,1fr)">
+
+    <div class="stat-card ${updateFilter===''?'active':''}" onclick="setUpdateFilter('')">
+
+      <div class="stat-label">记录总数</div><div class="stat-value">${total}</div>
+
+    </div>
+
+    <div class="stat-card ${updateFilter==='进行中'?'active':''} warning" onclick="setUpdateFilter('进行中')">
+
+      <div class="stat-label">进行中</div><div class="stat-value">${ongoing}</div>
+
+    </div>
+
+    <div class="stat-card ${updateFilter==='待启动'?'active':''}" onclick="setUpdateFilter('待启动')">
+
+      <div class="stat-label">待启动</div><div class="stat-value">${pending}</div>
+
+    </div>
+
+    <div class="stat-card ${updateFilter==='已完成'?'active':''}" onclick="setUpdateFilter('已完成')">
+
+      <div class="stat-label">已完成</div><div class="stat-value" style="color:var(--green)">${done}</div>
+
+    </div>
+
+  </div>`;
+
+  // 筛选栏
+
+  html += `<div class="filter-bar">
+
+    <div class="filter-group">
+
+      <span class="filter-label">更新状态</span>
+
+      <select class="filter-select" onchange="setUpdateFilter(this.value)">
+
+        <option value="">全部</option>
+
+        <option value="待启动" ${updateFilter==='待启动'?'selected':''}>待启动</option>
+
+        <option value="进行中" ${updateFilter==='进行中'?'selected':''}>进行中</option>
+
+        <option value="已完成" ${updateFilter==='已完成'?'selected':''}>已完成</option>
+
+        <option value="已逾期" ${updateFilter==='已逾期'?'selected':''}>已逾期</option>
+
+        <option value="已取消" ${updateFilter==='已取消'?'selected':''}>已取消</option>
+
+      </select>
+
+    </div>
+
+  </div>`;
+
+  if (data.length === 0) {
+
+    html += emptyState('暂无更新记录');
+
+  } else {
+
+    html += `<div class="table-wrap"><table>
+
+      <thead><tr>
+
+        <th>记录编号</th><th>展项名称</th><th>归属部门</th><th>更新类型</th>
+
+        <th>更新内容</th><th>版本变化</th><th>计划日期</th><th>完成日期</th>
+
+        <th>状态</th><th>执行人</th><th>操作</th>
+
+      </tr></thead>
+
+      <tbody>
+
+        ${data.map(item => {
+
+          const statusMap = {'待启动':'tag-gray','进行中':'tag-yellow','已完成':'tag-green','已逾期':'tag-red','已取消':'tag-gray'};
+
+          const verText = (item.verOld||'-') + ' → ' + (item.verNew||'-');
+
+          return `<tr style="cursor:pointer" onclick="openUpdateDetail('${item.id}')">
+
+            <td>${esc(item.id)}</td>
+
+            <td><strong>${esc(item.exhibitName||'')}</strong></td>
+
+            <td>${esc(item.dept||'')}</td>
+
+            <td>${esc(item.type||'')}</td>
+
+            <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(item.desc||'')}</td>
+
+            <td>${esc(verText)}</td>
+
+            <td>${esc(item.planDate||'')}</td>
+
+            <td>${esc(item.doneDate||'-')}</td>
+
+            <td><span class="tag ${statusMap[item.status]||'tag-gray'}">${esc(item.status||'')}</span></td>
+
+            <td>${esc(item.executor||'')}</td>
+
+            <td onclick="event.stopPropagation()">
+
+              <div class="table-actions">
+
+                <button class="btn-ghost btn-sm" onclick="openEditUpdateModal('${item.id}')" title="编辑">
+
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+
+                </button>
+
+                <button class="btn-ghost btn-sm" onclick="confirmDeleteUpdate('${item.id}')" title="删除">
+
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+
+                </button>
+
+              </div>
+
+            </td>
+
+          </tr>`;
+
+        }).join('')}
+
+      </tbody>
+
+    </table></div>`;
+
+  }
+
+  content.innerHTML = html;
+
+}
+
+function setUpdateFilter(val) {
+
+  updateFilter = val;
+
+  render();
+
+}
+
+function fillUpdateExhibitSelect() {
+
+  const sel = document.getElementById('up_exhibit_id');
+
+  sel.innerHTML = '<option value="">请选择展项</option>' + appData.map(i =>
+
+    `<option value="${esc(i.id)}">${esc(i.id)} - ${esc(i.name)}</option>`
+
+  ).join('');
+
+}
+
+function onUpdateExhibitSelect() {
+
+  const id = document.getElementById('up_exhibit_id').value;
+
+  const item = appData.find(i => i.id === id);
+
+  if (item) {
+
+    document.getElementById('up_exhibit_name').value = item.name || '';
+
+    document.getElementById('up_dept').value = item.dept || '';
+
+  } else {
+
+    document.getElementById('up_exhibit_name').value = '';
+
+    document.getElementById('up_dept').value = '';
+
+  }
+
+}
+
+function openAddUpdateModal() {
+
+  document.getElementById('up_id').value = '';
+
+  document.getElementById('updateModalTitle').textContent = '登记更新记录';
+
+  fillUpdateExhibitSelect();
+
+  ['up_desc','up_ver_old','up_ver_new','up_executor','up_verifier','up_remark','up_done_date'].forEach(id => {
+
+    const el = document.getElementById(id); if(el) el.value = '';
+
+  });
+
+  document.getElementById('up_type').value = '内容更新';
+
+  document.getElementById('up_status').value = '待启动';
+
+  const today = new Date().toISOString().slice(0,10);
+
+  document.getElementById('up_plan_date').value = today;
+
+  document.getElementById('updateModal').classList.add('show');
+
+}
+
+function openEditUpdateModal(id) {
+
+  const item = updateData.find(i => i.id === id);
+
+  if (!item) return showToast('未找到记录', 'error');
+
+  fillUpdateExhibitSelect();
+
+  document.getElementById('up_id').value = item.id;
+
+  document.getElementById('updateModalTitle').textContent = '编辑更新记录 — ' + (item.exhibitName||'');
+
+  document.getElementById('up_exhibit_id').value = item.exhibitId || '';
+
+  document.getElementById('up_exhibit_name').value = item.exhibitName || '';
+
+  document.getElementById('up_dept').value = item.dept || '';
+
+  document.getElementById('up_type').value = item.type || '内容更新';
+
+  document.getElementById('up_status').value = item.status || '待启动';
+
+  document.getElementById('up_desc').value = item.desc || '';
+
+  document.getElementById('up_ver_old').value = item.verOld || '';
+
+  document.getElementById('up_ver_new').value = item.verNew || '';
+
+  document.getElementById('up_executor').value = item.executor || '';
+
+  document.getElementById('up_verifier').value = item.verifier || '';
+
+  document.getElementById('up_plan_date').value = item.planDate || '';
+
+  document.getElementById('up_done_date').value = item.doneDate || '';
+
+  document.getElementById('up_remark').value = item.remark || '';
+
+  document.getElementById('updateModal').classList.add('show');
+
+}
+
+function closeUpdateModal() {
+
+  document.getElementById('updateModal').classList.remove('show');
+
+}
+
+function saveUpdate() {
+
+  const editId = document.getElementById('up_id').value;
+
+  const exhibitId = document.getElementById('up_exhibit_id').value;
+
+  const desc = document.getElementById('up_desc').value.trim();
+
+  const planDate = document.getElementById('up_plan_date').value;
+
+  if (!exhibitId) return showToast('请选择关联展项', 'error');
+
+  if (!desc) return showToast('请填写更新内容描述', 'error');
+
+  if (!planDate) return showToast('请填写计划更新日期', 'error');
+
+  const exhibit = appData.find(i => i.id === exhibitId);
+
+  const status = document.getElementById('up_status').value;
+
+  const doneDate = document.getElementById('up_done_date').value;
+
+  const data = {
+
+    id: editId || genUpdateId(),
+
+    exhibitId: exhibitId,
+
+    exhibitName: exhibit ? exhibit.name : document.getElementById('up_exhibit_name').value,
+
+    dept: exhibit ? exhibit.dept : document.getElementById('up_dept').value,
+
+    type: document.getElementById('up_type').value,
+
+    status: status,
+
+    desc: desc,
+
+    verOld: document.getElementById('up_ver_old').value.trim(),
+
+    verNew: document.getElementById('up_ver_new').value.trim(),
+
+    planDate: planDate,
+
+    doneDate: doneDate,
+
+    executor: document.getElementById('up_executor').value.trim(),
+
+    verifier: document.getElementById('up_verifier').value.trim(),
+
+    remark: document.getElementById('up_remark').value.trim(),
+
+  };
+
+  if (editId) {
+
+    const idx = updateData.findIndex(i => i.id === editId);
+
+    if (idx > -1) updateData[idx] = data;
+
+    showToast('更新记录已保存', 'success');
+
+  } else {
+
+    updateData.unshift(data);
+
+    showToast('更新记录已登记', 'success');
+
+  }
+
+  // 如果状态为已完成，自动刷新总台账的"最后更新日期"
+
+  if (status === '已完成' && doneDate && exhibit) {
+
+    exhibit.updateDate = doneDate;
+
+    saveData();
+
+    showToast('已同步更新展项台账的"最后更新日期"', 'success');
+
+  }
+
+  saveUpdate();
+
+  closeUpdateModal();
+
+  render();
+
+}
+
+function confirmDeleteUpdate(id) {
+
+  const item = updateData.find(i => i.id === id);
+
+  if (!item) return;
+
+  document.getElementById('confirmTitle').textContent = '删除更新记录';
+
+  document.getElementById('confirmMsg').textContent = `确定要删除「${item.exhibitName}」的更新记录吗？`;
+
+  document.getElementById('confirmOverlay').classList.add('show');
+
+  document.getElementById('confirmOkBtn').textContent = '确认删除';
+
+  document.getElementById('confirmOkBtn').onclick = () => {
+
+    updateData = updateData.filter(i => i.id !== id);
+
+    saveUpdate();
+
+    closeConfirm();
+
+    document.getElementById('confirmOkBtn').textContent = '确认删除';
+
+    showToast('记录已删除', 'success');
+
+    render();
+
+  };
+
+}
+
+function openUpdateDetail(id) {
+
+  const item = updateData.find(i => i.id === id);
+
+  if (!item) return;
+
+  const statusMap = {'待启动':'tag-gray','进行中':'tag-yellow','已完成':'tag-green','已逾期':'tag-red','已取消':'tag-gray'};
+
+  document.getElementById('detailTitle').textContent = (item.exhibitName||'') + ' — 更新详情';
+
+  document.getElementById('detailBody').innerHTML = `
+
+    <div style="margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap">
+
+      <span class="tag ${statusMap[item.status]||'tag-gray'}">${esc(item.status||'')}</span>
+
+      <span class="tag tag-blue">${esc(item.type||'')}</span>
+
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px 24px">
+
+      ${detailRow('记录编号', item.id)}
+
+      ${detailRow('关联展项', item.exhibitName + '（' + item.exhibitId + '）')}
+
+      ${detailRow('归属部门', item.dept)}
+
+      ${detailRow('更新类型', item.type)}
+
+      ${detailRow('更新前版本', item.verOld)}
+
+      ${detailRow('更新后版本', item.verNew)}
+
+      ${detailRow('计划更新日期', item.planDate)}
+
+      ${detailRow('实际完成日期', item.doneDate)}
+
+      ${detailRow('执行人', item.executor)}
+
+      ${detailRow('验证人', item.verifier)}
+
+    </div>
+
+    <div style="margin-top:16px">
+
+      <div style="font-size:13px;font-weight:600;color:var(--gray-600);margin-bottom:6px">更新内容描述</div>
+
+      <div style="font-size:14px;color:var(--gray-700);padding:12px;background:var(--gray-50);border-radius:8px">${esc(item.desc||'无')}</div>
+
+    </div>
+
+    <div style="margin-top:12px">
+
+      <div style="font-size:13px;font-weight:600;color:var(--gray-600);margin-bottom:6px">备注</div>
+
+      <div style="font-size:14px;color:var(--gray-700);padding:12px;background:var(--gray-50);border-radius:8px">${esc(item.remark||'无')}</div>
+
+    </div>
+
+  `;
+
+  document.getElementById('detailModal').classList.add('show');
+
+}
+
+// ============ 空状态辅助 ============
+
+function emptyState(msg) {
+
+  return `<div class="empty">
+
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+
+    <p>${msg}</p>
+
+  </div>`;
+
+}
+
+// ============ 清空数据 ============
+function confirmClearAll() {
+  if (appData.length === 0 && exhibitData.length === 0) {
+    showToast('当前没有数据可清空', '');
+    return;
+  }
+  document.getElementById('confirmTitle').textContent = '清空所有数据';
+  const msg = `当前共有展项台账 ${appData.length} 条、展项数据 ${exhibitData.length} 组、更新记录 ${updateData.length} 条，清空后不可恢复。建议先点击「导出」备份。确定要清空全部数据吗？`;
+  document.getElementById('confirmMsg').textContent = msg;
+  document.getElementById('confirmOverlay').classList.add('show');
+  document.getElementById('confirmOkBtn').textContent = '确认清空';
+  document.getElementById('confirmOkBtn').onclick = () => {
+    appData = [];
+    updateData = [];
+    exhibitData = [];
+    saveData();
+    saveUpdate();
+    saveExhibitData();
+    closeConfirm();
+    document.getElementById('confirmOkBtn').textContent = '确认删除';
+    showToast('全部数据已清空', 'success');
+    render();
+  };
+}
+
+// ============ 导出 ============
+function exportData() {
+  const allData = {
+    exhibits: appData,
+    updates: updateData,
+    exhibitData: exhibitData,
+    exportDate: new Date().toISOString(),
+  };
+  const dataStr = JSON.stringify(allData, null, 2);
+  const blob = new Blob([dataStr], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `展项管控数据备份_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('数据已导出', 'success');
+}
+
+// ============ 导入 ============
+function handleImport(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    try {
+      const raw = JSON.parse(event.target.result);
+      // 兼容多种格式
+      let exhibits = null, updates = null, edData = null;
+      if (Array.isArray(raw)) {
+        exhibits = raw;
+      } else {
+        if (raw.exhibits) exhibits = raw.exhibits;
+        if (raw.updates) updates = raw.updates;
+        if (raw.exhibitData) edData = raw.exhibitData;
+        if (!exhibits && !updates && !edData) throw new Error('数据格式不正确');
+      }
+      // 校验展项台账
+      if (exhibits) {
+        const valid = exhibits.every(i => i.id && i.name);
+        if (!valid) throw new Error('展项台账数据缺少必填字段（编号、名称）');
+      }
+      const exCnt = exhibits ? exhibits.length : 0;
+      const upCnt = updates ? updates.length : 0;
+      const edCnt = edData ? edData.length : 0;
+      const totalCount = exCnt + upCnt + edCnt;
+      const parts = [];
+      if (exhibits) parts.push(`展项台账${exCnt}条`);
+      if (edData) parts.push(`展项数据${edCnt}组`);
+      if (updates) parts.push(`更新记录${upCnt}条`);
+      const detail = parts.join('、');
+
+      const doImport = () => {
+        if (exhibits) { appData = exhibits; saveData(); }
+        if (updates) { updateData = updates; saveUpdate(); }
+        if (edData) { exhibitData = edData; saveExhibitData(); }
+      };
+
+      const hasExisting = appData.length > 0 || exhibitData.length > 0;
+      if (hasExisting) {
+        document.getElementById('confirmTitle').textContent = '导入数据';
+        document.getElementById('confirmMsg').textContent = `导入后将覆盖现有数据（${detail}），确定继续吗？`;
+        document.getElementById('confirmOverlay').classList.add('show');
+        document.getElementById('confirmOkBtn').textContent = '确认导入';
+        document.getElementById('confirmOkBtn').onclick = () => {
+          doImport();
+          closeConfirm();
+          document.getElementById('confirmOkBtn').textContent = '确认删除';
+          showToast(`成功导入 ${totalCount} 条数据`, 'success');
+          render();
+        };
+      } else {
+        doImport();
+        showToast(`成功导入 ${totalCount} 条数据`, 'success');
+        render();
+      }
+    } catch(err) {
+      showToast('导入失败：' + err.message, 'error');
+    }
+    e.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+function onAddBtnClick() {
+  if (currentPage === 'exhibitData') openAddExhibitDataModal();
+  else if (currentPage === 'update') openAddUpdateModal();
+  else openAddModal();
+}
+
+// ============ Toast ============
+
+function showToast(msg, type='') {
+
+  const toast = document.getElementById('toast');
+
+  toast.textContent = msg;
+
+  toast.className = 'toast show ' + type;
+
+  setTimeout(() => toast.classList.remove('show'), 2500);
+
+}
+
+// ============ 工具 ============
+
+function esc(str) {
+
+  if (str === null || str === undefined) return '';
+
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+}
+
+// ============ 启动 ============
+
+init();
+
+</script>
+
+</body>
+
+</html>
